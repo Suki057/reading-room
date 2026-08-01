@@ -115,6 +115,7 @@
   .brand { display: flex; align-items: center; gap: 12px; padding: 18px 18px 16px; border-bottom: 1px solid var(--line-soft); }
   .avatar { width: 44px; height: 44px; flex: none; border-radius: 50%; display: grid; place-items: center; font-size: 22px; color: #fff; overflow: hidden; background: linear-gradient(150deg, #5B7FFF, #4ECDC4); box-shadow: var(--shadow-sm), 0 0 20px rgba(91,127,255,.35); position: relative; }
   .avatar::after { content: ""; position: absolute; inset: -3px; border-radius: 50%; border: 2px solid rgba(255,255,255,.55); }
+  .avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: inherit; z-index: 1; }
   .brand-text { flex: 1; min-width: 0; }
   .brand-text h1 { font-family: var(--font-display); font-size: 18px; font-weight: 700; margin: 0; letter-spacing: .3px; line-height: 1.1; color: var(--ink); }
   .brand-text p { margin: 2px 0 0; font-size: 10px; letter-spacing: 1.6px; text-transform: uppercase; color: var(--muted); font-weight: 700; }
@@ -619,7 +620,10 @@
 
   <aside class="sidebar">
     <div class="brand">
-      <div class="avatar">📖</div>
+      <div class="avatar" id="avatar">
+        <img id="avatarImg" alt="" hidden />
+        <span id="avatarEmoji">📖</span>
+      </div>
       <div class="brand-text">
         <h1 class="app-title renameable" id="brandTitle" title="双击修改标题">Suki📖阅读室</h1>
         <p>🌱 自律养成系</p>
@@ -650,6 +654,11 @@
     <div class="data-actions">
       <button class="data-btn" id="exportData" type="button">⬇ 导出备份</button>
       <button class="data-btn" id="importData" type="button">⬆ 导入恢复</button>
+    </div>
+    <div class="data-actions">
+      <button class="data-btn" id="changeIcon" type="button">🎨 更换图标</button>
+      <button class="data-btn" id="copyUrl" type="button">🔗 复制地址</button>
+      <input type="file" id="iconFile" accept="image/*" hidden />
       <input type="file" id="importFile" accept="application/json,.json" hidden />
     </div>
     <div class="sidebar-foot">
@@ -1870,6 +1879,59 @@
     importData(f); e.target.value = "";
   });
 
+  /* 自定义 App 图标 */
+  var PERMA_URL = "https://suki057.github.io/reading-room/";
+  function applyAvatar() {
+    var img = document.getElementById("avatarImg");
+    var emoji = document.getElementById("avatarEmoji");
+    var link = document.querySelector('link[rel="apple-touch-icon"]');
+    if (data.appIcon) {
+      if (img) { img.src = data.appIcon; img.hidden = false; }
+      if (emoji) emoji.style.display = "none";
+      if (link) link.href = data.appIcon; /* iOS 添加到主屏时用自定义图标 */
+    } else {
+      if (img) { img.hidden = true; img.removeAttribute("src"); }
+      if (emoji) emoji.style.display = "";
+      if (link) link.href = "icon-192.png";
+    }
+  }
+  function resizeIcon(file, cb) {
+    var reader = new FileReader();
+    reader.onload = function () {
+      var im = new Image();
+      im.onload = function () {
+        var s = 512, c = document.createElement("canvas");
+        c.width = c.height = s;
+        var ctx = c.getContext("2d");
+        ctx.clearRect(0, 0, s, s);
+        /* 居中裁剪为正方形 */
+        var side = Math.min(im.width, im.height);
+        var sx = (im.width - side) / 2, sy = (im.height - side) / 2;
+        ctx.drawImage(im, sx, sy, side, side, 0, 0, s, s);
+        cb(c.toDataURL("image/png"));
+      };
+      im.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  }
+  document.getElementById("changeIcon").addEventListener("click", function () { document.getElementById("iconFile").click(); });
+  document.getElementById("iconFile").addEventListener("change", function (e) {
+    var f = e.target.files && e.target.files[0];
+    if (!f) return;
+    resizeIcon(f, function (url) {
+      data.appIcon = url; save(); applyAvatar();
+      showToast("图标已更新 ✅ 重新「添加到主屏幕」即可生效");
+    });
+    e.target.value = "";
+  });
+  document.getElementById("copyUrl").addEventListener("click", function () {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(PERMA_URL).then(function () { showToast("已复制永久地址 ✅"); }, function () { showToast("复制失败，请手动复制：" + PERMA_URL); });
+    } else {
+      showToast("永久地址：" + PERMA_URL);
+    }
+  });
+
   /* theme */
   function applyTheme() {
     document.documentElement.setAttribute("data-theme", data.theme || "light");
@@ -1890,6 +1952,7 @@
   var data = load();
   applyTheme();
   applyBackground();
+  applyAvatar();
   renderSidebar();
   renderDetail();
   var brandTitleEl = document.getElementById("brandTitle");
