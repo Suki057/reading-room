@@ -2013,10 +2013,29 @@
   if (brandTitleEl) { brandTitleEl.textContent = getAppTitle(); makeEditable(brandTitleEl, getAppTitle, setAppTitle); }
 })();
 
-/* PWA: 注册 Service Worker，使手机可「添加到主屏幕」当作 App 使用 */
+/* PWA: 注册 Service Worker，使手机可「添加到主屏幕」当作 App 使用
+   并内置「自动更新」机制：发现新版本时静默升级并刷新一次，
+   这样手机主屏上的图标不用删掉重加，也能拿到最新功能。 */
 if ('serviceWorker' in navigator) {
+  var swRefreshing = false;
+  // 新 Service Worker 接管页面后，自动刷新一次以加载新版本（只刷一次，避免死循环）
+  navigator.serviceWorker.addEventListener('controllerchange', function () {
+    if (swRefreshing) return;
+    swRefreshing = true;
+    window.location.reload();
+  });
+
   window.addEventListener('load', function () {
-    navigator.serviceWorker.register('sw.js').catch(function () {});
+    navigator.serviceWorker.register('sw.js').then(function (reg) {
+      // 立即检查一次更新
+      reg.update().catch(function () {});
+      // 每次重新回到 App（切回前台）时也检查更新
+      document.addEventListener('visibilitychange', function () {
+        if (document.visibilityState === 'visible') reg.update().catch(function () {});
+      });
+      // 兜底：每小时检查一次
+      setInterval(function () { reg.update().catch(function () {}); }, 3600000);
+    }).catch(function () {});
   });
 }
 </script>
