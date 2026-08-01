@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v21-ice-coral-cream" />
+<meta name="build" content="v22-hero-compact" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -371,17 +371,14 @@
   .mark-done { margin-top: 16px; }
 
   /* Home view */
-  .home-hero { position: relative; border-radius: 22px; overflow: hidden; padding: 30px 36px; margin-bottom: 30px; background: linear-gradient(135deg, rgba(143,207,227,0.30) 0%, rgba(253,246,236,0.24) 52%, rgba(247,156,125,0.22) 100%); background-size: cover; background-position: center; min-height: 176px; display: flex; align-items: flex-start; animation: rise .6s var(--ease) both; cursor: pointer; }
-  .home-hero .hero-scene { position: absolute; inset: 0; z-index: 0; }
-  .home-hero .hero-scene svg { width: 100%; height: 100%; display: block; }
-  .home-hero::after { content: ""; position: absolute; inset: 0; top: 0; left: 0; right: 0; height: 1px; z-index: 2; background: linear-gradient(90deg, transparent, rgba(255,255,255,.85), transparent); pointer-events: none; }
-  .home-hero .hero-text { position: relative; z-index: 1; padding: 4px 2px; }
-  .home-hero .hero-date { text-shadow: 0 1px 2px rgba(255,255,255,.5); }
-  .home-hero h1 { text-shadow: 0 1px 4px rgba(255,255,255,.5); }
-  .hero-weather { margin: 12px 0 0; font-size: 14.5px; font-weight: 700; color: var(--ink); text-shadow: 0 1px 2px rgba(255,255,255,.5); }
-  .hero-date { margin: 0 0 8px; font-size: 12px; letter-spacing: 1.6px; text-transform: uppercase; color: var(--ink-soft); font-weight: 700; }
-  .home-hero h1 { font-family: var(--font-display); font-size: clamp(30px, 5vw, 46px); margin: 0; letter-spacing: .3px; color: var(--ink); }
-  .hero-sub { margin: 8px 0 0; font-family: var(--font-display); font-style: italic; font-size: 16px; color: var(--accent-ink); }
+  .home-hero { position: relative; border-radius: 30px; overflow: hidden; padding: 18px 22px; margin-bottom: 24px; background: linear-gradient(135deg, rgba(143,207,227,0.32) 0%, rgba(253,246,236,0.28) 100%); border: 1px solid rgba(255,255,255,.26); box-shadow: 0 20px 46px rgba(45,58,66,.10), 0 3px 12px rgba(45,58,66,.05), inset 0 1px 1px rgba(255,255,255,.50); min-height: auto; display: flex; align-items: center; animation: rise .6s var(--ease) both; isolation: isolate; }
+  .home-hero .hero-scene { display: none; }
+  .home-hero .hero-text { position: relative; z-index: 1; width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; padding: 0; }
+  .home-hero .hero-date { margin: 0; text-shadow: none; }
+  .hero-weather { margin: 0; font-size: 14px; font-weight: 700; color: var(--ink); text-shadow: none; }
+  .hero-date { font-size: 12px; letter-spacing: 1.6px; text-transform: uppercase; color: var(--ink-soft); font-weight: 700; }
+  .home-hero h1 { display: none; }
+  .hero-sub { display: none; }
   .hero-sun { transform-origin: 624px 74px; animation: floatY 7s ease-in-out infinite; }
   .daily-quote { margin: 0 0 30px; padding: 16px 22px; border-left: 4px solid var(--accent); border-radius: 0 16px 16px 0; background: linear-gradient(145deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.35) 100%); box-shadow: var(--shadow-xs); font-family: var(--font-display); font-size: 16px; font-style: italic; color: var(--ink-soft); animation: rise .6s var(--ease) .06s both; backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); }
   .daily-quote cite { display: block; margin-top: 8px; font-style: normal; font-size: 13px; color: var(--muted); font-family: var(--font-ui); font-weight: 600; }
@@ -613,7 +610,7 @@
 
   /* --- 1. 主面板：圆角 + 融合式外光 --- */
   .card, .cover, .stat-card, .list-card, .session-block,
-  .note-sheet, .quote-panel, .toast {
+  .note-sheet, .quote-panel, .toast, .home-hero {
     border-radius: 30px;
     border: 1px solid rgba(255,255,255,.26);
     isolation: isolate;
@@ -627,7 +624,7 @@
 
   /* --- 2. 顶部白色反光带（玻璃受光面）--- */
   .card::before, .cover::before, .stat-card::before, .list-card::before,
-  .session-block::before, .note-sheet::before, .quote-panel::before, .toast::before {
+  .session-block::before, .note-sheet::before, .quote-panel::before, .toast::before, .home-hero::before {
     content: "";
     position: absolute;
     left: 5%; right: 5%; top: 1px;
@@ -646,7 +643,7 @@
 
   /* --- 3+4. 边框环：白色高光边 + 左上蓝紫 / 左下橙黄色散 --- */
   .card::after, .cover::after, .stat-card::after, .list-card::after,
-  .session-block::after, .note-sheet::after, .quote-panel::after, .toast::after {
+  .session-block::after, .note-sheet::after, .quote-panel::after, .toast::after, .home-hero::after {
     content: "";
     position: absolute;
     inset: 0;
@@ -947,10 +944,9 @@
       '<path d="M204 84 q7 -6 14 0 q7 -6 14 0" stroke="var(--bird)" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.35"/>' +
     '</svg>';
   function heroHTML(dateStr) {
-    return '<div class="home-hero" id="homeHero" title="快速点三下可换背景图">' +
+    return '<div class="home-hero" id="homeHero">' +
       '<div class="hero-text">' +
         '<p class="hero-date">' + esc(dateStr) + '</p>' +
-        '<h1 class="app-title renameable" id="appTitle" title="双击修改标题">' + esc(getAppTitle()) + '</h1>' +
         '<p class="hero-weather" id="heroWeather">' + esc(heroWeatherText) + '</p>' +
       '</div>' +
     '</div>';
@@ -1371,7 +1367,7 @@
     var html =
       '<div class="detail-inner"><div class="home">' +
         heroHTML(dateStr) +
-        '<section class="quote-panel"><div class="quote-head">📜 今日读书语录</div>' +
+        '<section class="quote-panel"><div class="quote-head">📜 读书语录</div>' +
         '<blockquote class="daily-quote">“' + esc(q.t) + '”<cite>' + esc(q.a) + '</cite></blockquote></section>' +
         checkinCard +
         '<div class="stat-grid">' +
