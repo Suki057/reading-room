@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v25-cream-yellow" />
+<meta name="build" content="v26-safe-area-nav" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -419,17 +419,17 @@
   .welcome p { margin: 0 0 22px; max-width: 320px; font-size: 14px; }
   .welcome .hint { font-size: 12.5px; margin-top: 18px; font-weight: 600; }
 
-  .sidebar-toggle { display: none; position: fixed; top: 16px; left: 16px; z-index: 30; width: 42px; height: 42px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); box-shadow: var(--shadow-md); align-items: center; justify-content: center; }
+  .sidebar-toggle { display: none; position: fixed; top: calc(14px + env(safe-area-inset-top, 0px)); left: calc(14px + env(safe-area-inset-left, 0px)); z-index: 40; width: 44px; height: 44px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); box-shadow: var(--shadow-md); align-items: center; justify-content: center; touch-action: manipulation; cursor: pointer; }
   .sidebar-toggle svg { width: 20px; height: 20px; }
   .scrim { display: none; position: fixed; inset: 0; z-index: 19; background: rgba(45,58,66,.22); backdrop-filter: blur(3px); }
 
   @media (max-width: 860px) {
     .app { grid-template-columns: 1fr; }
-    .sidebar { position: fixed; z-index: 20; top: 0; left: 0; bottom: 0; width: 300px; transform: translateX(-100%); transition: transform .32s var(--ease); box-shadow: var(--shadow-lg); }
+    .sidebar { position: fixed; z-index: 20; top: 0; left: 0; bottom: 0; width: 300px; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); transform: translateX(-100%); transition: transform .32s var(--ease); box-shadow: var(--shadow-lg); }
     .app.nav-open .sidebar { transform: translateX(0); }
     .app.nav-open .scrim { display: block; }
     .sidebar-toggle { display: flex; }
-    .detail-inner { padding: 76px 20px 70px; }
+    .detail-inner { padding: calc(76px + env(safe-area-inset-top, 0px)) 20px calc(70px + env(safe-area-inset-bottom, 0px)); }
     .grid { grid-template-columns: 1fr; }
     .card.span2 { grid-column: auto; }
     .progress-row { grid-template-columns: 1fr; }
