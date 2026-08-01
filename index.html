@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v31-conclusions-label" />
+<meta name="build" content="v32-footstat-clean" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -819,7 +819,6 @@
       <input type="file" id="importFile" accept="application/json,.json" hidden />
     </div>
     <div class="sidebar-foot">
-      <div class="foot-stat"><b id="statTotal">0</b><span>总分类</span></div>
       <div class="foot-stat"><b id="statDone">0</b><span>已读完</span></div>
     </div>
   </aside>
@@ -1161,7 +1160,6 @@
   var catList = document.getElementById("catList");
   var detail = document.getElementById("detail");
   var searchInput = document.getElementById("search");
-  var statTotal = document.getElementById("statTotal");
   var statDone = document.getElementById("statDone");
 
   /* ---- cover fetching (Open Library real book covers) ---- */
@@ -1258,7 +1256,6 @@
     if (!html) html = '<div class="empty-list">' + (q ? "未找到匹配" : "暂无内容") + "</div>";
     catList.innerHTML = html;
     var items = allItems();
-    statTotal.textContent = items.length;
     statDone.textContent = items.filter(isDone).length;
   }
   function setSidebarActive(id) {
