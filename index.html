@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v30-home-stats" />
+<meta name="build" content="v31-conclusions-label" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -869,7 +869,7 @@
     var h2 = (h + 45) % 360;
     return "linear-gradient(135deg, hsl(" + h + " 68% 76%), hsl(" + h2 + " 70% 86%))";
   }
-  function newItem(name) { return { id: uid(), name: name, type: "item", pages: 0, current: 0, readCount: 0, finishedDate: "", summary: "", review: "", conclusions: "", cover: "", coverList: [], coverIndex: 0, coverName: "", titles: { progress: "阅读进度与登记", summary: "内容总结", review: "复盘", conclusions: "输出结论&应用", flow: "读书流程" }, readLog: [], extra: [], removedSections: ["summary"] }; }
+  function newItem(name) { return { id: uid(), name: name, type: "item", pages: 0, current: 0, readCount: 0, finishedDate: "", summary: "", review: "", conclusions: "", cover: "", coverList: [], coverIndex: 0, coverName: "", titles: { progress: "阅读进度与登记", summary: "内容总结", review: "复盘", conclusions: "输出&应用", flow: "读书流程" }, readLog: [], extra: [], removedSections: ["summary"] }; }
   function newNoteRow(left, right, color) { return { left: left || "", right: right || "", color: color || "ink" }; }
 
   var QUOTES = [
@@ -981,11 +981,11 @@
           if (c.coverList === undefined) c.coverList = [];
           if (c.coverIndex === undefined) c.coverIndex = 0;
           if (c.coverName === undefined) c.coverName = "";
-          if (!c.titles) c.titles = { progress: "阅读进度与登记", summary: "内容总结", review: "复盘", conclusions: "输出结论&应用" };
+          if (!c.titles) c.titles = { progress: "阅读进度与登记", summary: "内容总结", review: "复盘", conclusions: "输出&应用" };
           if (!c.extra) c.extra = [];
           if (!c.readLog) c.readLog = [];
           if (!c.titles.flow) c.titles.flow = "读书流程";
-          if (c.titles.conclusions === "内化出的结论") c.titles.conclusions = "输出结论&应用";
+          if (c.titles.conclusions === "内化出的结论" || c.titles.conclusions === "输出结论&应用") c.titles.conclusions = "输出&应用";
           if (!c.removedSections) c.removedSections = ["summary"];
           /* 把阅读记录升级为「每记录带 日期/页数 + 手写笔记内容框」的板块 */
           c.readLog = c.readLog || [];
