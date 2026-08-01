@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v19-pastel-colors" />
+<meta name="build" content="v20-liquid-glass-edge" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -602,6 +602,161 @@
 
   /* 详情页分区标题更精致 */
   .card h2 .num { box-shadow: inset 0 1px 0 rgba(255,255,255,.6); }
+
+  /* ===================================================================
+     液态玻璃边框 v20
+     1) 更柔的大圆角
+     2) 1px 半透明高光边（融入背景，非贴上去的线框）
+     3) 边框上方一条白色反光带
+     4) 左侧边缘蓝紫 → 橙黄的彩虹色散
+     =================================================================== */
+
+  /* --- 1. 主面板：圆角 + 融合式外光 --- */
+  .card, .cover, .stat-card, .list-card, .session-block,
+  .note-sheet, .quote-panel, .toast {
+    border-radius: 30px;
+    border: 1px solid rgba(255,255,255,.26);
+    isolation: isolate;
+    box-shadow:
+      0 20px 46px rgba(58,56,70,.10),
+      0 3px 12px rgba(58,56,70,.05),
+      inset 0 1px 1px rgba(255,255,255,.50);
+  }
+  .quote-panel { position: relative; }
+  .note-sheet, .quote-panel { backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%); }
+
+  /* --- 2. 顶部白色反光带（玻璃受光面）--- */
+  .card::before, .cover::before, .stat-card::before, .list-card::before,
+  .session-block::before, .note-sheet::before, .quote-panel::before, .toast::before {
+    content: "";
+    position: absolute;
+    left: 5%; right: 5%; top: 1px;
+    height: 44%;
+    z-index: -1;
+    pointer-events: none;
+    opacity: .95;
+    border-radius: 999px 999px 42% 42% / 100% 100% 26% 26%;
+    background: linear-gradient(180deg,
+      rgba(255,255,255,.92) 0%,
+      rgba(255,255,255,.50) 32%,
+      rgba(255,255,255,.16) 64%,
+      rgba(255,255,255,0)  100%);
+  }
+  .card:hover::before { opacity: 1; }
+
+  /* --- 3+4. 边框环：白色高光边 + 左上蓝紫 / 左下橙黄色散 --- */
+  .card::after, .cover::after, .stat-card::after, .list-card::after,
+  .session-block::after, .note-sheet::after, .quote-panel::after, .toast::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    border-radius: inherit;
+    padding: 1.2px;
+    pointer-events: none;
+    box-shadow: none;
+    background:
+      linear-gradient(118deg,
+        rgba(118,102,246,.92)  0%,
+        rgba(152,140,255,.70)  5%,
+        rgba(188,208,255,.40) 11%,
+        rgba(255,255,255,0)   21%),
+      linear-gradient(28deg,
+        rgba(255,156,68,.92)   0%,
+        rgba(255,198,122,.64)  6%,
+        rgba(255,230,180,.30) 12%,
+        rgba(255,255,255,0)   22%),
+      linear-gradient(180deg,
+        rgba(255,255,255,.92)  0%,
+        rgba(255,255,255,.52) 44%,
+        rgba(255,255,255,.32) 100%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+  }
+
+  /* --- 5. 小控件：同款玻璃边（弱化色散）--- */
+  .icon-btn, .btn-ghost, .cover-btn, .nav-home, .search-box, .btn-add-row {
+    position: relative;
+    isolation: isolate;
+    border-radius: 16px;
+    border-style: solid;
+    border-color: rgba(255,255,255,.30);
+  }
+  .icon-btn::before, .btn-ghost::before, .cover-btn::before,
+  .nav-home::before, .search-box::before, .btn-add-row::before {
+    content: "";
+    position: absolute;
+    left: 7%; right: 7%; top: 1px;
+    height: 46%;
+    z-index: -1;
+    pointer-events: none;
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(255,255,255,.72), rgba(255,255,255,.12) 78%, transparent);
+  }
+  .icon-btn::after, .btn-ghost::after, .cover-btn::after,
+  .nav-home::after, .search-box::after, .btn-add-row::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+    padding: 1px;
+    pointer-events: none;
+    background:
+      linear-gradient(125deg, rgba(118,102,246,.58) 0%, rgba(180,196,255,.26) 9%, rgba(255,255,255,0) 21%),
+      linear-gradient(35deg,  rgba(255,156,68,.58)  0%, rgba(255,214,150,.24) 9%, rgba(255,255,255,0) 21%),
+      linear-gradient(180deg, rgba(255,255,255,.86), rgba(255,255,255,.34));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+  }
+
+  /* --- 6. 侧边栏右缘的色散光边 --- */
+  .sidebar { border-right-color: rgba(255,255,255,.34); }
+  .sidebar::after {
+    content: "";
+    position: absolute;
+    top: 0; bottom: 0; right: -1px;
+    width: 2px;
+    z-index: 3;
+    pointer-events: none;
+    background: linear-gradient(180deg,
+      rgba(118,102,246,.55)  0%,
+      rgba(180,200,255,.34) 18%,
+      rgba(255,255,255,.58) 46%,
+      rgba(255,226,170,.38) 76%,
+      rgba(255,156,68,.55) 100%);
+  }
+
+  /* --- 7. 进度条也做成玻璃胶囊 --- */
+  .progress-bar { border-color: rgba(255,255,255,.34); box-shadow: inset 0 1px 2px rgba(58,56,70,.08), 0 1px 0 rgba(255,255,255,.55); }
+
+  /* --- 8. 暗色主题：减弱白光，保留色散 --- */
+  [data-theme="dark"] .card, [data-theme="dark"] .cover,
+  [data-theme="dark"] .stat-card, [data-theme="dark"] .list-card,
+  [data-theme="dark"] .session-block, [data-theme="dark"] .note-sheet,
+  [data-theme="dark"] .quote-panel, [data-theme="dark"] .toast {
+    border-color: rgba(255,255,255,.10);
+    box-shadow: 0 20px 46px rgba(0,0,0,.34), inset 0 1px 1px rgba(255,255,255,.10);
+  }
+  [data-theme="dark"] .card::before, [data-theme="dark"] .cover::before,
+  [data-theme="dark"] .stat-card::before, [data-theme="dark"] .list-card::before,
+  [data-theme="dark"] .session-block::before, [data-theme="dark"] .note-sheet::before,
+  [data-theme="dark"] .quote-panel::before, [data-theme="dark"] .toast::before {
+    background: linear-gradient(180deg, rgba(255,255,255,.26) 0%, rgba(255,255,255,.10) 40%, rgba(255,255,255,0) 100%);
+  }
+  [data-theme="dark"] .card::after, [data-theme="dark"] .cover::after,
+  [data-theme="dark"] .stat-card::after, [data-theme="dark"] .list-card::after,
+  [data-theme="dark"] .session-block::after, [data-theme="dark"] .note-sheet::after,
+  [data-theme="dark"] .quote-panel::after, [data-theme="dark"] .toast::after {
+    background:
+      linear-gradient(118deg, rgba(138,124,255,.85) 0%, rgba(160,150,255,.55) 6%, rgba(255,255,255,0) 20%),
+      linear-gradient(28deg,  rgba(255,170,90,.85)  0%, rgba(255,205,140,.50) 6%, rgba(255,255,255,0) 20%),
+      linear-gradient(180deg, rgba(255,255,255,.36) 0%, rgba(255,255,255,.14) 50%, rgba(255,255,255,.08) 100%);
+  }
 
 </style>
 <meta name="theme-color" content="#f1ede8" />
