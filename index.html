@@ -2,9 +2,9 @@
 <html lang="zh-CN" data-theme="light">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v22-hero-compact" />
+<meta name="build" content="v24-prevent-zoom" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -85,6 +85,7 @@
   }
 
   * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
   html, body { height: 100%; margin: 0; }
   body { font-family: var(--font-ui); color: var(--ink); background: linear-gradient(180deg, #FDFBF7 0%, #EDF7FB 55%, #D6EEF7 100%) fixed; -webkit-font-smoothing: antialiased; line-height: 1.6; overflow: hidden; }
   body::before {
@@ -127,7 +128,7 @@
   .search { padding: 14px 16px 6px; }
   .search-box { position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: 13px; backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); }
   .search-box svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--muted); pointer-events: none; }
-  .search input { width: 100%; padding: 10px 12px 10px 36px; border: none; background: transparent; border-radius: 13px; color: var(--ink); font-size: 14px; font-family: inherit; transition: all .2s var(--ease); }
+  .search input { width: 100%; padding: 10px 12px 10px 36px; border: none; background: transparent; border-radius: 13px; color: var(--ink); font-size: 16px; font-family: inherit; transition: all .2s var(--ease); }
   .search input:focus { outline: none; box-shadow: 0 0 0 3px var(--accent-soft); }
   .search input::placeholder { color: var(--muted); }
 
@@ -143,7 +144,7 @@
   .cat-list::-webkit-scrollbar, .detail-inner::-webkit-scrollbar { width: 9px; }
   .cat-list::-webkit-scrollbar-thumb, .detail-inner::-webkit-scrollbar-thumb { background: var(--line); border-radius: 9px; border: 2px solid var(--surface); }
 
-  input.nav-name { flex: 1; min-width: 0; border: none; background: transparent; color: inherit; font-family: inherit; font-weight: 700; font-size: 14px; padding: 3px 4px; border-radius: 7px; transition: background .15s var(--ease); }
+  input.nav-name { flex: 1; min-width: 0; border: none; background: transparent; color: inherit; font-family: inherit; font-weight: 700; font-size: 16px; padding: 3px 4px; border-radius: 7px; transition: background .15s var(--ease); }
   input.nav-name[readonly] { cursor: pointer; }
   input.nav-name:focus { outline: none; background: rgba(143,207,227,0.14); box-shadow: 0 0 0 2px rgba(143,207,227,0.18); }
   /* 双击重命名悬停提示 */
@@ -220,7 +221,7 @@
   .detail-cat b { color: var(--cat, var(--accent-ink)); font-weight: 800; }
 
   .detail-head { margin-bottom: 28px; }
-  .title-input { width: 100%; border: none; background: transparent; font-family: var(--font-display); font-weight: 700; font-size: clamp(28px, 4vw, 40px); line-height: 1.12; color: var(--ink); padding: 0; margin: 0; border-bottom: 2px solid transparent; transition: border-color .2s var(--ease); }
+  .title-input { width: 100%; border: none; background: transparent; font-family: var(--font-display); font-weight: 700; font-size: clamp(28px, 4vw, 40px); line-height: 1.12; color: var(--ink); padding: 0; margin: 0; border-bottom: 2px solid transparent; transition: border-color .2s var(--ease); -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
   .title-input:focus { outline: none; border-bottom-color: var(--accent); background: rgba(255,255,255,0.06); }
   .title-input[readonly] { cursor: default; }
   .title-input::placeholder { color: var(--muted); }
@@ -270,7 +271,7 @@
   .log-row { display: grid; grid-template-columns: 1fr 1fr 36px; gap: 8px; align-items: center; margin-bottom: 8px; }
   .log-row.log-head { margin-bottom: 6px; }
   .log-row.log-head span { font-size: 12px; font-weight: 700; color: var(--muted); letter-spacing: .4px; }
-  .log-date, .log-page { width: 100%; padding: 8px 10px; border: 1px solid var(--line); background: var(--surface); border-radius: var(--radius-sm); color: var(--ink); font-size: 13.5px; font-family: inherit; transition: border-color .18s var(--ease), background .18s var(--ease); }
+  .log-date, .log-page { width: 100%; padding: 8px 10px; border: 1px solid var(--line); background: var(--surface); border-radius: var(--radius-sm); color: var(--ink); font-size: 16px; font-family: inherit; transition: border-color .18s var(--ease), background .18s var(--ease); }
   .log-date:focus, .log-page:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); background: rgba(255,255,255,0.72); }
   .log-empty { font-size: 13px; color: var(--muted); padding: 4px 2px 10px; }
   .flow-boxes { margin-top: 16px; display: flex; flex-direction: column; gap: 18px; }
@@ -300,14 +301,14 @@
   .note-punch { position: absolute; left: 0; top: 0; bottom: 0; width: 26px; display: flex; flex-direction: column; align-items: center; padding-top: 18px; gap: 34px; pointer-events: none; }
   .note-punch i { width: 9px; height: 9px; border-radius: 50%; background: rgba(45,58,66,0.14); box-shadow: inset 0 1px 1px rgba(0,0,0,.12); }
   .note-body { padding: 18px 20px 18px 42px; }
-  .note-title { width: 100%; border: none; background: transparent; font-family: var(--font-display); font-size: 17px; font-weight: 800; color: var(--ink); padding: 0 0 8px; border-bottom: 2px solid rgba(143,207,227,0.25); margin-bottom: 14px; line-height: 1.3; }
+  .note-title { width: 100%; border: none; background: transparent; font-family: var(--font-display); font-size: 18px; font-weight: 800; color: var(--ink); padding: 0 0 8px; border-bottom: 2px solid rgba(143,207,227,0.25); margin-bottom: 14px; line-height: 1.3; }
   .note-title:focus { outline: none; border-bottom-color: var(--accent); }
   .note-title::placeholder { color: var(--muted); opacity: .7; }
   .note-rows { display: flex; flex-direction: column; gap: 10px; }
   .note-row { display: grid; grid-template-columns: 1.1fr 1fr; gap: 0; border-radius: var(--radius-sm); background: rgba(255,255,255,0.42); border: 1px solid rgba(255,255,255,0.65); overflow: hidden; position: relative; }
   .note-row::after { content: ""; position: absolute; left: 50%; top: 8px; bottom: 8px; width: 1px; background: linear-gradient(180deg, transparent, rgba(45,58,66,0.10) 20%, rgba(45,58,66,0.10) 80%, transparent); }
   .note-col { position: relative; padding: 12px 14px; min-height: 84px; }
-  .note-col textarea { width: 100%; min-height: 74px; border: none; background: transparent; resize: vertical; padding: 0; font-size: 14px; line-height: 1.75; color: var(--ink); font-family: inherit; box-shadow: none; }
+  .note-col textarea { width: 100%; min-height: 74px; border: none; background: transparent; resize: vertical; padding: 0; font-size: 16px; line-height: 1.75; color: var(--ink); font-family: inherit; box-shadow: none; }
   .note-col textarea:focus { outline: none; background: transparent; box-shadow: none; }
   .note-col textarea::placeholder { color: var(--muted); opacity: .55; }
   .note-col-left textarea::placeholder { content: "要点 / 方法 / 概念"; }
@@ -344,7 +345,7 @@
   .progress-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px 18px; }
   .field { display: flex; flex-direction: column; gap: 6px; }
   .field label { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
-  .field input { width: 100%; padding: 10px 12px; border: 1px solid var(--line); background: var(--surface); border-radius: var(--radius-sm); color: var(--ink); font-size: 14px; font-family: inherit; transition: all .18s var(--ease); }
+  .field input { width: 100%; padding: 10px 12px; border: 1px solid var(--line); background: var(--surface); border-radius: var(--radius-sm); color: var(--ink); font-size: 16px; font-family: inherit; transition: all .18s var(--ease); }
   .field input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); background: rgba(255,255,255,0.72); }
   .field input[type=number]::-webkit-outer-spin-button, .field input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
   .field input[type=number] { -moz-appearance: textfield; }
@@ -356,7 +357,7 @@
   .stepper button:hover { color: var(--accent-ink); background: var(--accent-soft); }
   .stepper input { border-radius: 0 !important; text-align: center; border-left: none !important; border-right: none !important; }
 
-  textarea { width: 100%; min-height: 130px; resize: vertical; padding: 12px 14px; border: 1px solid var(--line); background: var(--surface); border-radius: var(--radius-sm); color: var(--ink); font-size: 14.5px; line-height: 1.7; font-family: inherit; transition: all .18s var(--ease); }
+  textarea { width: 100%; min-height: 130px; resize: vertical; padding: 12px 14px; border: 1px solid var(--line); background: var(--surface); border-radius: var(--radius-sm); color: var(--ink); font-size: 16px; line-height: 1.7; font-family: inherit; transition: all .18s var(--ease); }
   textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); background: rgba(255,255,255,0.72); }
   textarea::placeholder { color: var(--muted); }
 
