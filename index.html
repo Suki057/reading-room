@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v28-home-first" />
+<meta name="build" content="v29-home-clean" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -974,7 +974,8 @@
       if (n.type === "category") {
         if (!n.emoji) n.emoji = defaultEmoji(n.name);
         if (!n.color || typeof n.color !== "string") n.color = CATEGORY_COLORS[0];
-        n.children = n.children || [];
+      }
+      if (n.children && n.children.length) {
         n.children.forEach(function (c) {
           if (c.cover === undefined) c.cover = "";
           if (c.coverList === undefined) c.coverList = [];
@@ -1342,24 +1343,7 @@
     var totalReads = items.reduce(function (s, b) { return s + (b.readCount || 0); }, 0);
     var dateStr = new Date().toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric", weekday: "long" });
 
-    data.checkins = data.checkins || {};
-    var streak = computeStreak();
     if (!weatherRequested) { weatherRequested = true; loadWeather(); }
-    var checkedToday = !!data.checkins[todayKey()];
-    var dots = "";
-    for (var i = 6; i >= 0; i--) {
-      var d = new Date(); d.setDate(d.getDate() - i);
-      var k = keyOf(d);
-      dots += '<span class="dot' + (data.checkins[k] ? " on" : "") + (i === 0 ? " today" : "") + '" title="' + k + '"></span>';
-    }
-    var checkinCard =
-      '<section class="card checkin-card">' +
-        '<div class="checkin-left">' +
-          '<div class="checkin-streak"><span class="flame">🔥</span>连续打卡 <b>' + streak + '</b> 天</div>' +
-          '<div class="week-dots">' + dots + '</div>' +
-        '</div>' +
-        '<button class="btn btn-accent" id="checkinBtn">' + (checkedToday ? "今日已打卡 ✓" : "📅 今日打卡") + '</button>' +
-      '</section>';
 
     var q = quoteForToday();
     var html =
@@ -1367,7 +1351,6 @@
         heroHTML(dateStr) +
         '<section class="quote-panel"><div class="quote-head">📜 读书语录</div>' +
         '<blockquote class="daily-quote">“' + esc(q.t) + '”<cite>' + esc(q.a) + '</cite></blockquote></section>' +
-        checkinCard +
         '<div class="stat-grid">' +
           statCard(items.length, "总分类") +
           statCard(done.length, "已读完") +
@@ -1376,7 +1359,6 @@
         "</div>" +
         '<div class="home-cols">' +
           listCard("继续阅读", ongoing, false) +
-          listCard("最近读完", done.slice().sort(byDateDesc).slice(0, 6), true) +
         "</div>" +
       "</div></div>";
     detail.innerHTML = html;
@@ -1398,14 +1380,6 @@
         data.selectedId = el.getAttribute("data-open");
         save(); renderSidebar(); renderDetail();
       });
-    });
-    var cb = document.getElementById("checkinBtn");
-    if (cb) cb.addEventListener("click", function () {
-      data.checkins = data.checkins || {};
-      var k = todayKey();
-      if (data.checkins[k]) return;
-      data.checkins[k] = true;
-      save(); renderHome();
     });
   }
   function statCard(num, lbl, icon) { return '<div class="stat-card"><span class="stat-ic">' + (icon || "📊") + '</span><span class="stat-body"><span class="stat-num">' + num + '</span><span class="stat-lbl">' + lbl + "</span></span></div>"; }
