@@ -1882,17 +1882,16 @@
   /* 自定义 App 图标 */
   var PERMA_URL = "https://suki057.github.io/reading-room/";
   function applyAvatar() {
+    /* 侧栏头像：运行时改用用户上传的图（dataURL）。 */
+    /* 主屏图标固定走仓库里的 icon-192.png 文件，避免 iOS 对 dataURL apple-touch-icon 支持不可靠。 */
     var img = document.getElementById("avatarImg");
     var emoji = document.getElementById("avatarEmoji");
-    var link = document.querySelector('link[rel="apple-touch-icon"]');
     if (data.appIcon) {
       if (img) { img.src = data.appIcon; img.hidden = false; }
       if (emoji) emoji.style.display = "none";
-      if (link) link.href = data.appIcon; /* iOS 添加到主屏时用自定义图标 */
     } else {
       if (img) { img.hidden = true; img.removeAttribute("src"); }
       if (emoji) emoji.style.display = "";
-      if (link) link.href = "icon-192.png";
     }
   }
   function resizeIcon(file, cb) {
