@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v61-swipe-fix" />
+<meta name="build" content="v62-log-layout" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -302,33 +302,34 @@
   /* 阅读板块：每次阅读 = 日期/页数 + 手写笔记内容框 */
   .add-log-block { width: 100%; margin-top: 6px; justify-content: center; }
   .read-blocks { margin-top: 16px; display: flex; flex-direction: column; gap: 20px; }
-  .session-block { border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; background: linear-gradient(145deg, rgba(255,255,255,0.58) 0%, rgba(251,234,225,0.38) 100%); box-shadow: var(--shadow-sm); position: relative; overflow: hidden; backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); }
+  .session-block { border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 16px; background: linear-gradient(145deg, rgba(255,255,255,0.58) 0%, rgba(251,234,225,0.38) 100%); box-shadow: var(--shadow-sm); position: relative; overflow: hidden; backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); }
   .session-block::before { content: ""; position: absolute; left: 14px; right: 14px; top: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,.8), transparent); opacity: .9; pointer-events: none; }
   .session-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
   .session-idx { font-size: 13.5px; font-weight: 800; color: var(--accent-ink); background: var(--accent-soft); padding: 4px 12px; border-radius: 20px; }
   .session-head .del-log { margin-left: auto; }
-  .session-row { grid-template-columns: 1fr 1fr; margin-bottom: 14px; }
-  .session-field { margin-bottom: 12px; }
+  .session-row { display: flex; flex-direction: column; gap: 12px; margin-bottom: 14px; }
+  .session-field { display: flex; align-items: center; gap: 10px; }
   .session-field:last-child { margin-bottom: 0; }
-  .session-label { font-size: 13px; font-weight: 700; color: var(--ink-soft); margin-bottom: 6px; }
+  .session-label { flex: none; width: 78px; font-size: 13px; font-weight: 700; color: var(--ink-soft); }
+  .session-field input { flex: 1; min-width: 0; }
   .session-field textarea { width: 100%; min-height: 84px; }
   .btn.sm { padding: 6px 11px; font-size: 12.5px; border-radius: 11px; }
   #addLog { width: auto; align-self: flex-start; }
 
   /* ===== 手写笔记内容框（康奈尔/双栏活页纸风格） ===== */
-  .note-sheet { position: relative; border-radius: var(--radius); background: linear-gradient(180deg, rgba(255,255,255,0.72) 0%, rgba(251,234,225,0.56) 100%); border: 1px solid rgba(255,255,255,0.85); box-shadow: var(--shadow-sm), inset 0 0 0 1px rgba(255,255,255,.5); padding: 0; overflow: hidden; margin-top: 14px; }
-  .note-sheet::before { content: ""; position: absolute; left: 14px; right: 14px; top: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,.9), transparent); pointer-events: none; }
-  .note-punch { position: absolute; left: 0; top: 0; bottom: 0; width: 26px; display: flex; flex-direction: column; align-items: center; padding-top: 18px; gap: 34px; pointer-events: none; }
-  .note-punch i { width: 9px; height: 9px; border-radius: 50%; background: rgba(45,58,66,0.14); box-shadow: inset 0 1px 1px rgba(0,0,0,.12); }
-  .note-body { padding: 18px 20px 18px 42px; }
-  .note-title { width: 100%; border: none; background: transparent; font-family: var(--font-display); font-size: 18px; font-weight: 800; color: var(--ink); padding: 0 0 8px; border-bottom: 2px solid rgba(224,138,130,0.25); margin-bottom: 14px; line-height: 1.3; }
+  .note-sheet { position: relative; border-radius: var(--radius); background: linear-gradient(180deg, rgba(255,255,255,0.72) 0%, rgba(251,234,225,0.56) 100%); border: 1px solid rgba(255,255,255,0.65); box-shadow: var(--shadow-xs); padding: 0; overflow: hidden; margin-top: 12px; }
+  .note-sheet::before { content: ""; position: absolute; left: 10px; right: 10px; top: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,.9), transparent); pointer-events: none; }
+  .note-punch { position: absolute; left: 0; top: 0; bottom: 0; width: 22px; display: flex; flex-direction: column; align-items: center; padding-top: 16px; gap: 32px; pointer-events: none; }
+  .note-punch i { width: 8px; height: 8px; border-radius: 50%; background: rgba(45,58,66,0.12); box-shadow: inset 0 1px 1px rgba(0,0,0,.10); }
+  .note-body { padding: 14px 14px 14px 30px; }
+  .note-title { width: 100%; border: none; background: transparent; font-family: var(--font-display); font-size: 18px; font-weight: 800; color: var(--ink); padding: 0 0 6px; border-bottom: 2px solid rgba(224,138,130,0.25); margin-bottom: 10px; line-height: 1.3; }
   .note-title:focus { outline: none; border-bottom-color: var(--accent); }
   .note-title::placeholder { color: var(--muted); opacity: .7; }
   .note-rows { display: flex; flex-direction: column; gap: 10px; }
   .note-row { display: grid; grid-template-columns: 1.1fr 1fr; gap: 0; border-radius: var(--radius-sm); background: rgba(255,255,255,0.42); border: 1px solid rgba(255,255,255,0.65); overflow: hidden; position: relative; }
   .note-row::after { content: ""; position: absolute; left: 50%; top: 8px; bottom: 8px; width: 1px; background: linear-gradient(180deg, transparent, rgba(45,58,66,0.10) 20%, rgba(45,58,66,0.10) 80%, transparent); }
-  .note-col { position: relative; padding: 12px 14px; min-height: 84px; }
-  .note-col textarea { width: 100%; min-height: 74px; border: none; background: transparent; resize: vertical; padding: 0; font-size: 16px; line-height: 1.75; color: var(--ink); font-family: inherit; box-shadow: none; }
+  .note-col { position: relative; padding: 12px 12px; min-height: 110px; }
+  .note-col textarea { width: 100%; min-height: 96px; border: none; background: transparent; resize: vertical; padding: 0; font-size: 16px; line-height: 1.75; color: var(--ink); font-family: inherit; box-shadow: none; }
   .note-col textarea:focus { outline: none; background: transparent; box-shadow: none; }
   .note-col textarea::placeholder { color: var(--muted); opacity: .55; }
   .note-col-left textarea::placeholder { content: "要点 / 方法 / 概念"; }
@@ -1754,8 +1755,8 @@
           '<button class="icon-btn small del-log" data-log-idx="' + i + '" title="删除本次阅读板块" type="button">🗑</button>' +
         '</div>' +
         '<div class="log-row session-row">' +
-          '<input type="date" class="log-date" value="' + esc(r.date || "") + '" />' +
-          '<input type="number" class="log-page" min="0" placeholder="看到第几页" value="' + (r.page != null ? r.page : "") + '" />' +
+          '<div class="session-field"><div class="session-label">日期</div><input type="date" class="log-date" value="' + esc(r.date || "") + '" /></div>' +
+          '<div class="session-field"><div class="session-label">观看至__页</div><input type="number" class="log-page" min="0" placeholder="看到第几页" value="' + (r.page != null ? r.page : "") + '" /></div>' +
         '</div>' +
         noteSheetHTML(r, i) +
       '</div>';
