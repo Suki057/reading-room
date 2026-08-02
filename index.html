@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v42-remove-bg-click-change" />
+<meta name="build" content="v43-title-emoji-freeinput" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -215,9 +215,15 @@
   .detail-cat b { color: var(--cat, var(--accent-ink)); font-weight: 800; }
 
   /* 输入标题页（添加子类目第一步） */
-  .title-screen { max-width: 480px; margin: 6vh auto 0; padding: 28px 26px 30px; background: var(--surface); border: 1px solid var(--line-soft); border-radius: 22px; text-align: center; box-shadow: var(--shadow-sm); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); }
+  .title-screen { position: relative; max-width: 480px; margin: 6vh auto 0; padding: 28px 26px 30px; background: var(--surface); border: 1px solid var(--line-soft); border-radius: 22px; text-align: center; box-shadow: var(--shadow-sm); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); }
   .title-mark { font-size: 40px; margin-bottom: 8px; cursor: pointer; user-select: none; transition: transform .15s var(--ease); }
   .title-mark:hover { transform: scale(1.08); }
+  /* emoji 自由输入弹层（双击图标打开，单击图标收起） */
+  .add-emoji-pop { position: absolute; top: 92px; left: 50%; transform: translateX(-50%) translateY(-8px); display: none; flex-direction: column; gap: 10px; padding: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow-lg); z-index: 30; opacity: 0; transition: opacity .16s var(--ease), transform .16s var(--ease); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); }
+  .add-emoji-pop.open { display: flex; opacity: 1; transform: translateX(-50%) translateY(0); }
+  .add-emoji-input { width: 200px; box-sizing: border-box; text-align: center; font-size: 26px; padding: 10px 12px; font-family: inherit; color: var(--ink); background: var(--surface-2); border: 1.5px solid var(--line); border-radius: 12px; outline: none; -webkit-text-size-adjust: 100%; }
+  .add-emoji-input:focus { border-color: var(--cat, var(--accent)); box-shadow: 0 0 0 4px var(--cat-soft, var(--accent-soft)); }
+  .add-emoji-pop .btn { align-self: center; min-width: 96px; }
   .title-screen h2 { font-family: var(--font-display); font-size: 21px; color: var(--ink); margin: 0 0 6px; }
   .title-sub { font-size: 13px; color: var(--muted); margin: 0 0 20px; }
   .newtitle-input { width: 100%; box-sizing: border-box; padding: 14px 16px; font-size: 16px; font-weight: 600; font-family: inherit; color: var(--ink); background: var(--surface-2); border: 1.5px solid var(--line); border-radius: 14px; outline: none; transition: border-color .18s var(--ease), box-shadow .18s var(--ease); -webkit-text-size-adjust: 100%; }
@@ -1788,16 +1794,6 @@
     });
     return emojiPop;
   }
-  function showAddEmojiPop(anchor) {
-    var pop = ensureEmojiPop();
-    pop.setAttribute("data-for", "__add__");
-    pop.classList.add("open");
-    var r = anchor.getBoundingClientRect();
-    pop.style.top = (r.bottom + 6) + "px";
-    var left = r.left;
-    if (left + pop.offsetWidth > window.innerWidth - 8) left = window.innerWidth - pop.offsetWidth - 8;
-    pop.style.left = left + "px";
-  }
   function showEmojiPop(id, anchor) {
     var pop = ensureEmojiPop();
     pop.setAttribute("data-for", id);
@@ -1840,9 +1836,13 @@
           "<span></span>" +
         "</div>" +
         '<div class="title-screen">' +
-          '<div class="title-mark" id="titleMark" title="双击更换图标">' + addItemEmoji + "</div>" +
+          '<div class="title-mark" id="titleMark" title="双击更换图标">' + esc(addItemEmoji) + "</div>" +
           "<h2>书籍名称</h2>" +
           '<input id="newTitleInput" class="newtitle-input" type="text" placeholder="例如：第一章 / 第 1 周 / 概念笔记" autocomplete="off" />' +
+          '<div class="add-emoji-pop" id="addEmojiPop">' +
+            '<input id="addEmojiInput" class="add-emoji-input" type="text" placeholder="输入或粘贴 emoji" />' +
+            '<button class="btn btn-primary" id="addEmojiDone" type="button">完成</button>' +
+          "</div>" +
           '<div class="title-actions">' +
             '<button class="btn btn-ghost" id="titleCancelBtn" type="button">取消</button>' +
             '<button class="btn btn-primary" id="titleConfirm" type="button">确认并进入 ›</button>' +
@@ -1853,13 +1853,40 @@
     var inp = document.getElementById("newTitleInput");
     if (inp) inp.focus();
     var tm = document.getElementById("titleMark");
-    if (tm) tm.addEventListener("dblclick", function () { showAddEmojiPop(tm); });
+    var pop = document.getElementById("addEmojiPop");
+    var emInp = document.getElementById("addEmojiInput");
+    function openEmoji() {
+      if (!pop) return;
+      emInp.value = addItemEmoji;
+      pop.classList.add("open");
+      emInp.focus(); emInp.select();
+    }
+    function closeEmoji() { if (pop) pop.classList.remove("open"); }
+    if (tm) {
+      tm.addEventListener("click", function () { closeEmoji(); });
+      tm.addEventListener("dblclick", function (e) { e.preventDefault(); openEmoji(); });
+    }
+    if (emInp) emInp.addEventListener("input", function () {
+      addItemEmoji = emInp.value.slice(0, 12);
+      if (tm) tm.textContent = addItemEmoji;
+    });
+    if (emInp) emInp.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") { e.preventDefault(); closeEmoji(); }
+    });
+    var popOutside = function (e) {
+      if (!pop || !pop.classList.contains("open")) return;
+      if (e.target.closest && (e.target.closest("#addEmojiPop") || e.target.closest("#titleMark"))) return;
+      closeEmoji();
+    };
+    document.addEventListener("click", popOutside);
     var cancel = function () {
+      document.removeEventListener("click", popOutside);
       data.selectedId = addTitleReturn; renderSidebar(); renderDetail();
     };
     document.getElementById("titleCancel").addEventListener("click", cancel);
     document.getElementById("titleCancelBtn").addEventListener("click", cancel);
-    document.getElementById("titleConfirm").addEventListener("click", function () { confirmAddItem(catId); });
+    document.getElementById("addEmojiDone").addEventListener("click", function () { closeEmoji(); });
+    document.getElementById("titleConfirm").addEventListener("click", function () { closeEmoji(); confirmAddItem(catId); });
     if (inp) inp.addEventListener("keydown", function (e) {
       if (e.key === "Enter") { e.preventDefault(); confirmAddItem(catId); }
     });
