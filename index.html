@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v49-ver-badge" />
+<meta name="build" content="v50-collapsed-migrate" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -1119,11 +1119,26 @@
   function load() {
     try {
       var raw = localStorage.getItem(STORE_KEY);
-      if (raw) { var p = JSON.parse(raw); if (p && p.nodes) { migrate(p); return p; } }
+      if (raw) {
+        var p = JSON.parse(raw);
+        if (p && p.nodes) {
+          migrate(p);
+          // v46+ 需求：所有总类目默认收起；把旧数据里存成展开状态的也统一重置
+          p.nodes.forEach(function (n) { if (n.type === "category") n.collapsed = true; });
+          return p;
+        }
+      }
     } catch (e) {}
     try {
       var r2 = localStorage.getItem("reading-workbench-v2");
-      if (r2) { var p2 = JSON.parse(r2); if (p2 && p2.nodes) { migrate(p2); return p2; } }
+      if (r2) {
+        var p2 = JSON.parse(r2);
+        if (p2 && p2.nodes) {
+          migrate(p2);
+          p2.nodes.forEach(function (n) { if (n.type === "category") n.collapsed = true; });
+          return p2;
+        }
+      }
     } catch (e) {}
     return seed();
   }
