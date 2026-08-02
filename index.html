@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v46-cat-collapsed" />
+<meta name="build" content="v47-sw-autoupdate" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -2332,7 +2332,9 @@ if ('serviceWorker' in navigator) {
   });
 
   window.addEventListener('load', function () {
-    navigator.serviceWorker.register('sw.js').then(function (reg) {
+    var swMeta = document.querySelector('meta[name="build"]');
+    var swUrl = 'sw.js?v=' + (swMeta ? encodeURIComponent(swMeta.getAttribute('content')) : Date.now());
+    navigator.serviceWorker.register(swUrl).then(function (reg) {
       // 立即检查一次更新
       reg.update().catch(function () {});
       // 每次重新回到 App（切回前台）时也检查更新
