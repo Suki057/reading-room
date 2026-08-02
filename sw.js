@@ -1,5 +1,5 @@
 // 缓存版本号：每次发布新版本时递增，可自动清理旧缓存并强制更新页面
-const CACHE = 'suki-reading-v47';
+const CACHE = 'suki-reading-v48';
 const ASSETS = [
   './',
   './index.html',

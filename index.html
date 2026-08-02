@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v59-cat-toggle" />
+<meta name="build" content="v60-stat-sticker" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -1453,8 +1453,8 @@
         topBar +
         heroHTML(dateStr) +
         '<div class="stat-grid">' +
-          statCard(done.length, "已读完", "📚", "himawari") +
-          statCard(totalReads, "累计阅读次数", "🔁", "kazama") +
+          statCard(done.length, "已读完", "", "himawari") +
+          statCard(totalReads, "累计阅读次数", "", "kazama") +
         "</div>" +
         '<div class="home-cols">' +
           listCard("继续阅读", ongoing, false, "boo") +
@@ -1485,7 +1485,10 @@
       });
     });
   }
-  function statCard(num, lbl, icon, charName) { return '<div class="stat-card">' + (charName ? sticker(charName) : "") + '<span class="stat-ic">' + (icon || "📊") + '</span><span class="stat-body"><span class="stat-num">' + num + '</span><span class="stat-lbl">' + lbl + "</span></span></div>"; }
+  function statCard(num, lbl, icon, charName) {
+    var ic = icon ? '<span class="stat-ic">' + icon + '</span>' : '';
+    return '<div class="stat-card">' + (charName ? sticker(charName) : "") + ic + '<span class="stat-body"><span class="stat-num">' + num + '</span><span class="stat-lbl">' + lbl + "</span></span></div>";
+  }
   function byDateDesc(a, b) { return (b.finishedDate || "").localeCompare(a.finishedDate || ""); }
   function listCard(title, items, doneMode, charName) {
     var icon = doneMode ? "✅" : "📖";
