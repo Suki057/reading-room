@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v54-font-pingfang" />
+<meta name="build" content="v55-quote-pingfang" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -401,12 +401,12 @@
   .hero-weather { margin: 0 52px 0 0; font-size: 14px; font-weight: 700; color: var(--ink); background: var(--accent-soft); border: 1.5px solid var(--accent); border-radius: 20px; padding: 3px 12px; white-space: nowrap; }
   .hero-quote { display: flex; flex-direction: column; gap: 6px; padding: 14px 16px; background: rgba(255,255,255,.6); border: 1.5px dashed var(--ink-line); border-radius: 16px; }
   .hq-mark { font-size: 18px; line-height: 1; }
-  .hq-text { font-family: var(--font-display); font-size: 17px; font-style: italic; color: var(--ink-soft); line-height: 1.5; }
+  .hq-text { font-family: var(--font-display); font-size: 17px; color: var(--ink-soft); line-height: 1.5; }
   .hq-author { font-size: 13px; color: var(--muted); font-weight: 600; align-self: flex-end; }
   .home-hero h1 { display: none; }
   .hero-sub { display: none; }
   .hero-sun { transform-origin: 624px 74px; animation: floatY 7s ease-in-out infinite; }
-  .daily-quote { margin: 0 0 30px; padding: 16px 22px; border-left: 4px solid var(--accent); border-radius: 0 16px 16px 0; background: linear-gradient(145deg, rgba(255,255,255,0.58) 0%, rgba(251,234,225,0.38) 100%); box-shadow: var(--shadow-xs); font-family: var(--font-display); font-size: 16px; font-style: italic; color: var(--ink-soft); animation: rise .6s var(--ease) .06s both; backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); }
+  .daily-quote { margin: 0 0 30px; padding: 16px 22px; border-left: 4px solid var(--accent); border-radius: 0 16px 16px 0; background: linear-gradient(145deg, rgba(255,255,255,0.58) 0%, rgba(251,234,225,0.38) 100%); box-shadow: var(--shadow-xs); font-family: var(--font-display); font-size: 16px; color: var(--ink-soft); animation: rise .6s var(--ease) .06s both; backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); }
   .daily-quote cite { display: block; margin-top: 8px; font-style: normal; font-size: 13px; color: var(--muted); font-family: var(--font-ui); font-weight: 600; }
   .quote-panel { margin: 0 0 30px; padding: 16px 20px 6px; background: linear-gradient(145deg, rgba(255,255,255,0.60) 0%, rgba(251,234,225,0.40) 100%); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-sm); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); animation: rise .55s var(--ease) both; }
   .quote-head { font-family: var(--font-display); font-weight: 800; font-size: 14px; color: var(--accent-ink); margin-bottom: 10px; letter-spacing: .5px; }
