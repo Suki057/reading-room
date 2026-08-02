@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v47-sw-autoupdate" />
+<meta name="build" content="v48-swipe-delete" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -175,7 +175,7 @@
   .nav-home.is-active .home-ic { color: var(--accent-ink); }
 
   .cat { margin-bottom: 6px; }
-  .cat-head { width: 100%; display: flex; align-items: center; gap: 8px; padding: 6px 9px; border: none; background: transparent; border-radius: 12px; color: var(--ink); text-align: left; transition: background .18s var(--ease); }
+  .cat-head { width: 100%; display: flex; align-items: center; gap: 8px; padding: 6px 9px; border: none; background: transparent; border-radius: 12px; color: var(--ink); text-align: left; transition: transform .25s var(--ease), background .18s var(--ease); }
   .cat-head:hover { background: var(--surface-2); }
   .cat-chevron { font-size: 6px; color: var(--muted); transition: transform .22s var(--ease); width: 12px; flex: none; }
   .cat.collapsed .cat-chevron { transform: rotate(-90deg); }
@@ -185,11 +185,15 @@
   .cat-count { font-size: 6.5px; font-weight: 700; color: var(--muted); background: var(--surface); border: 1px solid var(--line-soft); padding: 1px 8px; border-radius: 20px; flex: none; }
   .cat-add { width: 24px; height: 24px; flex: none; border-radius: 8px; display: grid; place-items: center; font-size: 17px; line-height: 1; color: var(--muted); background: transparent; border: 1px solid transparent; transition: all .18s var(--ease); }
   .cat-add:hover { color: var(--accent-ink); background: rgba(143,207,227,0.14); border-color: var(--accent); }
-  .cat-del { width: 24px; height: 24px; flex: none; border-radius: 8px; display: grid; place-items: center; font-size: 14px; line-height: 1; color: var(--muted); background: transparent; border: 1px solid transparent; opacity: 0; transition: all .18s var(--ease); }
-  .cat-head:hover .cat-del { opacity: 1; }
-  .cat-del:hover { color: var(--coral); background: var(--coral-soft); border-color: var(--coral); }
   .cat-books { overflow: hidden; }
   .cat.collapsed .cat-books { display: none; }
+  /* 左滑删除：.swipe-row 包裹行，滑动时行左移露出右侧红色删除键，点击删除→进回收站 */
+  .swipe-row { position: relative; overflow: hidden; touch-action: pan-y; }
+  .row-del { position: absolute; top: 0; right: 0; bottom: 0; width: 76px; border: none; background: var(--coral); color: #fff; font-size: 13px; font-weight: 700; display: grid; place-items: center; transform: translateX(100%); transition: transform .25s var(--ease); z-index: 3; cursor: pointer; }
+  .row-del:active { filter: brightness(.92); }
+  .swipe-row.swiped .cat-head, .swipe-row.swiped .book-item { transform: translateX(-76px); }
+  .swipe-row.swiped .row-del { transform: translateX(0); }
+  .swipe-row.swiping .cat-head, .swipe-row.swiping .book-item { transition: none; }
 
   .book-item { width: 100%; display: flex; align-items: center; gap: 9px; padding: 8px 10px 8px 30px; border: none; background: transparent; border-radius: 11px; color: var(--ink-soft); text-align: left; transition: all .16s var(--ease); position: relative; cursor: pointer; }
   .book-item::before { content: ""; position: absolute; left: 18px; top: 50%; width: 6px; height: 6px; border-radius: 50%; background: var(--line); transform: translateY(-50%); transition: background .16s var(--ease); }
@@ -1296,24 +1300,23 @@
         if (q && items.length === 0) return;
         var collapsed = (n.collapsed !== false) && !q;
         html += '<div class="cat' + (collapsed ? " collapsed" : "") + '" data-cat="' + n.id + '" style="--cat:' + catColor(n) + ';--cat-soft:' + softColor(catColor(n)) + '">';
-        html += '<div class="cat-head" data-act="toggle" data-node="' + n.id + '">';
+        html += '<div class="cat-head-row swipe-row"><div class="cat-head" data-act="toggle" data-node="' + n.id + '">';
         html += '<span class="cat-chevron">▾</span>';
         html += '<button class="cat-emoji" data-act="emoji" data-node="' + n.id + '" title="点击更换图标">' + esc(n.emoji || "📚") + '</button>';
         html += '<span class="renameable nav-wrap"><input class="cat-name nav-name" data-act="rename" data-node="' + n.id + '" value="' + esc(n.name) + '" readonly /><em class="rename-hint">✏️</em></span>';
         html += '<span class="cat-count">' + items.length + "</span>";
-        html += '<button class="cat-del" data-act="del-cat" data-node="' + n.id + '" title="删除此分类">🗑</button>';
         html += '<button class="cat-add" data-act="add-item" data-node="' + n.id + '" title="添加子条目">＋</button>';
-        html += "</div>";
+        html += '</div><button class="row-del" data-act="del-cat" data-node="' + n.id + '">删除</button></div>';
         html += '<div class="cat-books">';
         if (items.length === 0) html += '<div class="empty-list">点 ＋ 添加子条目</div>';
         items.forEach(function (b) {
           var ia = b.id === data.selectedId ? " is-active" : "";
           var idn = isDone(b) ? " is-done" : "";
-          html += '<div class="book-item' + ia + idn + '" data-act="select" data-node="' + b.id + '">';
+          html += '<div class="book-row swipe-row"><div class="book-item' + ia + idn + '" data-act="select" data-node="' + b.id + '">';
           html += '<span class="book-emoji">' + esc(b.emoji || "📚") + "</span>";
           html += '<span class="renameable nav-wrap"><input class="entry-name nav-name" data-act="rename" data-node="' + b.id + '" value="' + esc(b.name) + '" readonly /><em class="rename-hint">✏️</em></span>';
           html += '<span class="mini-bar"><i style="width:' + progressOf(b) + '%"></i></span>';
-          html += "</div>";
+          html += '</div><button class="row-del" data-act="del-item" data-node="' + b.id + '">删除</button></div>';
         });
         html += "</div></div>";
       }
@@ -2087,9 +2090,13 @@
 
   /* sidebar events */
   catList.addEventListener("click", function (e) {
+    var cr0 = e.target.closest('.swipe-row');
+    if (cr0 && cr0._suppressClick) { cr0._suppressClick = false; return; }
+    var openRow = e.target.closest('.swipe-row.swiped');
+    if (openRow && !e.target.closest('.row-del')) { openRow.classList.remove('swiped'); if (swipeRow === openRow) swipeRow = null; return; }
     var emo = e.target.closest('[data-act="emoji"]');
     if (emo) { e.stopPropagation(); showEmojiPop(emo.getAttribute("data-node"), emo); return; }
-    var del = e.target.closest('[data-act="del-cat"]');
+    var del = e.target.closest('[data-act="del-cat"],[data-act="del-item"]');
     if (del) { e.stopPropagation(); var dn = findNode(del.getAttribute("data-node")); if (dn) softDelete(dn); return; }
     var add = e.target.closest('[data-act="add-item"]');
     if (add) { e.stopPropagation(); startAddItem(add.getAttribute("data-node")); return; }
@@ -2121,6 +2128,49 @@
       closeNav();
     }
   });
+
+  /* 左滑删除手势：在总类目行/子类目行上向左滑动，露出"删除"键；点删除→软删除进回收站 */
+  var swipeRow = null;
+  function closeSwipe() { if (swipeRow) { swipeRow.classList.remove('swiped'); swipeRow = null; } }
+  catList.addEventListener("pointerdown", function (e) {
+    var row = e.target.closest('.swipe-row');
+    if (swipeRow && (!row || !swipeRow.contains(e.target))) closeSwipe();
+    if (!row) return;
+    row._sx = e.clientX; row._sy = e.clientY; row._sw = false; row._moved = false;
+  }, { passive: true });
+  catList.addEventListener("pointermove", function (e) {
+    var row = e.target.closest('.swipe-row');
+    if (!row || row._sx === undefined) return;
+    var dx = e.clientX - row._sx, dy = e.clientY - row._sy;
+    if (!row._moved && Math.abs(dx) > 6 && Math.abs(dx) > Math.abs(dy)) {
+      row._sw = true; row._moved = true; row.classList.add('swiping');
+      if (swipeRow && swipeRow !== row) closeSwipe();
+      try { row.setPointerCapture(e.pointerId); } catch (err) {}
+    }
+    if (row._sw) {
+      if (e.cancelable) e.preventDefault();
+      var t = Math.max(-76, Math.min(0, dx));
+      var front = row.querySelector('.cat-head, .book-item');
+      if (front) front.style.transform = 'translateX(' + t + 'px)';
+    }
+  }, { passive: false });
+  catList.addEventListener("pointerup", function (e) {
+    var row = e.target.closest('.swipe-row');
+    if (!row || row._sx === undefined) return;
+    var dx = e.clientX - row._sx;
+    var front = row.querySelector('.cat-head, .book-item');
+    if (row._sw) {
+      if (e.cancelable) e.preventDefault();
+      if (front) front.style.transform = '';
+      row.classList.remove('swiping');
+      if (dx < -40) { row.classList.add('swiped'); swipeRow = row; }
+      else { row.classList.remove('swiped'); if (swipeRow === row) swipeRow = null; }
+      row._suppressClick = true; // 抑制滑动结束后误触发的 click
+    }
+    row._sx = undefined; row._sw = false; row._moved = false;
+  }, { passive: false });
+  catList.addEventListener("scroll", closeSwipe, { passive: true });
+
   catList.addEventListener("dblclick", function (e) {
     var rn = e.target.closest('[data-act="rename"]');
     if (!rn) return;
