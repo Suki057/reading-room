@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v63-note-row-delete" />
+<meta name="build" content="v64-done-shelf" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -431,6 +431,22 @@
   .stat-grid .stat-card:nth-child(2) { animation-delay: .09s; background: linear-gradient(145deg, rgba(255,220,190,0.40) 0%, rgba(255,228,205,0.24) 100%); }
   .stat-grid .stat-card:nth-child(3) { animation-delay: .14s; background: linear-gradient(145deg, rgba(255,255,255,0.58) 0%, rgba(251,234,225,0.34) 100%); }
   .stat-grid .stat-card:nth-child(4) { animation-delay: .19s; background: linear-gradient(145deg, rgba(255,225,200,0.38) 0%, rgba(251,234,225,0.24) 100%); }
+  /* 已读完书架页（封面网格） */
+  .stat-card[data-open] { cursor: pointer; }
+  .shelf-page { padding: 2px 0 12px; }
+  .shelf-head { display: flex; align-items: center; gap: 13px; margin-bottom: 20px; }
+  .shelf-back { width: 42px; height: 42px; flex: none; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); display: grid; place-items: center; color: var(--ink-soft); font-size: 24px; line-height: 1; cursor: pointer; box-shadow: var(--shadow-xs); transition: all .16s var(--ease); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); }
+  .shelf-back:hover { border-color: var(--accent); color: var(--accent-ink); background: rgba(224,138,130,.14); }
+  .shelf-head h2 { margin: 0; font-family: var(--font-display); font-size: 22px; font-weight: 800; color: var(--ink); }
+  .shelf-count { font-size: 13px; color: var(--muted); font-weight: 600; margin-top: 2px; }
+  .shelf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(98px, 1fr)); gap: 20px 14px; }
+  .shelf-card { display: flex; flex-direction: column; gap: 9px; cursor: pointer; transition: transform .22s var(--ease); }
+  .shelf-card:hover { transform: translateY(-5px); }
+  .shelf-cover { position: relative; width: 100%; aspect-ratio: 3 / 4; border-radius: 15px; overflow: hidden; background: linear-gradient(145deg, rgba(224,138,130,.22) 0%, rgba(255,228,205,.34) 100%); box-shadow: var(--shadow-sm); display: grid; place-items: center; }
+  .shelf-cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .shelf-cover .shelf-ph { font-size: 30px; line-height: 1; }
+  .shelf-name { font-size: 12.5px; line-height: 1.4; color: var(--ink-soft); font-weight: 600; text-align: center; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .shelf-empty { padding: 56px 12px; text-align: center; color: var(--muted); font-size: 14px; line-height: 1.8; }
   .stat-num { font-family: var(--font-display); font-size: 30px; font-weight: 700; color: var(--accent-ink); line-height: 1; }
   .stat-lbl { font-size: 12.5px; color: var(--muted); font-weight: 600; }
   .home-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
@@ -802,6 +818,8 @@
       linear-gradient(28deg,  rgba(255,170,90,.85)  0%, rgba(255,205,140,.50) 6%, rgba(255,255,255,0) 20%),
       linear-gradient(180deg, rgba(255,255,255,.36) 0%, rgba(255,255,255,.14) 50%, rgba(255,255,255,.08) 100%);
   }
+  [data-theme="dark"] .shelf-cover { background: linear-gradient(145deg, rgba(224,138,130,.26) 0%, rgba(255,228,205,.14) 100%); }
+  [data-theme="dark"] .shelf-back { background: rgba(255,255,255,.08); }
 
   /* 手机端：侧栏占 3/5 屏幕，品牌区图标置顶、文字横排居中 */
   @media (max-width: 860px) {
@@ -1372,6 +1390,7 @@
     var isHome = data.selectedId === "home" || (node && (node.type === "home" || node.type === "category"));
     app.classList.toggle("home-view", isHome);
     if (data.selectedId === "trash") { renderTrash(); return; }
+    if (data.selectedId === "__done_shelf__") { renderDoneShelf(); return; }
     if (!node) { renderWelcome(); return; }
     if (node.type === "home") { renderHome(); return; }
     if (node.type === "category") { renderHome(); return; }
@@ -1460,7 +1479,7 @@
         topBar +
         heroHTML(dateStr) +
         '<div class="stat-grid">' +
-          statCard(done.length, "已读完", "", "himawari") +
+          statCard(done.length, "已读完", "", "himawari", "__done_shelf__") +
           statCard(totalReads, "累计阅读次数", "", "kazama") +
         "</div>" +
         '<div class="home-cols">' +
@@ -1492,9 +1511,10 @@
       });
     });
   }
-  function statCard(num, lbl, icon, charName) {
+  function statCard(num, lbl, icon, charName, open) {
     var ic = icon ? '<span class="stat-ic">' + icon + '</span>' : '';
-    return '<div class="stat-card">' + (charName ? sticker(charName) : "") + ic + '<span class="stat-body"><span class="stat-num">' + num + '</span><span class="stat-lbl">' + lbl + "</span></span></div>";
+    var attr = open ? ' data-open="' + open + '"' : '';
+    return '<div class="stat-card"' + attr + '>' + (charName ? sticker(charName) : "") + ic + '<span class="stat-body"><span class="stat-num">' + num + '</span><span class="stat-lbl">' + lbl + "</span></span></div>";
   }
   function byDateDesc(a, b) { return (b.finishedDate || "").localeCompare(a.finishedDate || ""); }
   function listCard(title, items, doneMode, charName) {
@@ -1512,6 +1532,41 @@
       });
     }
     return '<section class="list-card">' + (charName ? sticker(charName) : "") + '<h2><span class="lc-ic">' + icon + '</span>' + esc(title) + "</h2>" + body + "</section>";
+  }
+  function renderDoneShelf() {
+    var items = allItems().filter(isDone).sort(byDateDesc);
+    var body = "";
+    if (!items.length) {
+      body = '<div class="shelf-empty">还没有读完的书 📚<br/>读完一本后，封面会出现在这里</div>';
+    } else {
+      body = '<div class="shelf-grid">';
+      items.forEach(function (b) {
+        var cover = b.cover
+          ? '<img src="' + esc(b.cover) + '" alt="" loading="lazy" />'
+          : '<span class="shelf-ph">' + esc(defaultEmoji(b.name)) + '</span>';
+        body += '<div class="shelf-card" data-open="' + b.id + '">' +
+          '<div class="shelf-cover">' + cover + '</div>' +
+          '<div class="shelf-name">' + esc(b.name) + '</div>' +
+        '</div>';
+      });
+      body += '</div>';
+    }
+    detail.innerHTML =
+      '<div class="detail-inner"><div class="shelf-page">' +
+        '<div class="shelf-head">' +
+          '<button class="shelf-back" data-open="home" aria-label="返回">‹</button>' +
+          '<div><h2>已读完</h2><div class="shelf-count">共 ' + items.length + ' 本</div></div>' +
+        '</div>' +
+        body +
+      '</div></div>';
+    detail.querySelectorAll("[data-open]").forEach(function (el) {
+      el.addEventListener("click", function () {
+        var id = el.getAttribute("data-open");
+        data.selectedId = id;
+        setSidebarActive(id);
+        save(); renderSidebar(); renderDetail();
+      });
+    });
   }
 
   function field(label, control) { return '<div class="field"><label>' + label + "</label>" + control + "</div>"; }
