@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v45-bg-dbltap" />
+<meta name="build" content="v46-cat-collapsed" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -177,12 +177,12 @@
   .cat { margin-bottom: 6px; }
   .cat-head { width: 100%; display: flex; align-items: center; gap: 8px; padding: 6px 9px; border: none; background: transparent; border-radius: 12px; color: var(--ink); text-align: left; transition: background .18s var(--ease); }
   .cat-head:hover { background: var(--surface-2); }
-  .cat-chevron { font-size: 10px; color: var(--muted); transition: transform .22s var(--ease); width: 12px; flex: none; }
+  .cat-chevron { font-size: 6px; color: var(--muted); transition: transform .22s var(--ease); width: 12px; flex: none; }
   .cat.collapsed .cat-chevron { transform: rotate(-90deg); }
-  .cat-emoji { width: 24px; height: 24px; flex: none; border-radius: 8px; border: 1px solid var(--line); background: var(--surface-2); font-size: 14px; line-height: 1; display: grid; place-items: center; transition: all .18s var(--ease); padding: 0; backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); }
+  .cat-emoji { width: 24px; height: 24px; flex: none; border-radius: 8px; border: 1px solid var(--line); background: var(--surface-2); font-size: 10px; line-height: 1; display: grid; place-items: center; transition: all .18s var(--ease); padding: 0; backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); }
   .cat-emoji:hover { border-color: var(--accent); background: var(--accent-soft); transform: scale(1.06); }
-  .cat-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 2px 0; font-size: 13.5px; }
-  .cat-count { font-size: 10.5px; font-weight: 700; color: var(--muted); background: var(--surface); border: 1px solid var(--line-soft); padding: 1px 8px; border-radius: 20px; flex: none; }
+  .cat-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 2px 0; font-size: 9.5px; }
+  .cat-count { font-size: 6.5px; font-weight: 700; color: var(--muted); background: var(--surface); border: 1px solid var(--line-soft); padding: 1px 8px; border-radius: 20px; flex: none; }
   .cat-add { width: 24px; height: 24px; flex: none; border-radius: 8px; display: grid; place-items: center; font-size: 17px; line-height: 1; color: var(--muted); background: transparent; border: 1px solid transparent; transition: all .18s var(--ease); }
   .cat-add:hover { color: var(--accent-ink); background: rgba(143,207,227,0.14); border-color: var(--accent); }
   .cat-del { width: 24px; height: 24px; flex: none; border-radius: 8px; display: grid; place-items: center; font-size: 14px; line-height: 1; color: var(--muted); background: transparent; border: 1px solid transparent; opacity: 0; transition: all .18s var(--ease); }
@@ -196,8 +196,8 @@
   .book-item:hover { background: var(--surface-2); color: var(--ink); }
   .book-item.is-active { background: var(--cat-soft, var(--accent-soft)); color: var(--cat, var(--accent-ink)); font-weight: 700; }
   .book-item.is-active::before { background: var(--cat, var(--accent)); }
-  .entry-name { color: inherit; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 12.5px; }
-  .book-emoji { font-size: 14px; line-height: 1; flex: none; filter: saturate(1.05); }
+  .entry-name { color: inherit; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 8.5px; }
+  .book-emoji { font-size: 10px; line-height: 1; flex: none; filter: saturate(1.05); }
   .book-item.is-done .mini-bar i { background: var(--amber); box-shadow: 0 0 8px rgba(253,240,212,.45); }
   .book-item.is-done::before { background: var(--amber); }
   .mini-bar { width: 38px; height: 5px; flex: none; border-radius: 5px; background: var(--line); overflow: hidden; }
@@ -1026,13 +1026,13 @@
       theme: "light", selectedId: "home", search: "", trash: [], checkins: {}, bgSeed: "", bgImage: "", heroBgImage: "", appTitle: "Suki📖阅读室",
       nodes: [
         { id: "home", name: "首页", type: "home", emoji: "🏠" },
-        { id: "c1", name: "认知提升", type: "category", emoji: "💡", color: CATEGORY_COLORS[0], collapsed: false, children: [
+        { id: "c1", name: "认知提升", type: "category", emoji: "💡", color: CATEGORY_COLORS[0], collapsed: true, children: [
           newItem("复盘")
         ]},
-        { id: "c2", name: "技能学习", type: "category", emoji: "🎯", color: CATEGORY_COLORS[1], collapsed: false, children: [
+        { id: "c2", name: "技能学习", type: "category", emoji: "🎯", color: CATEGORY_COLORS[1], collapsed: true, children: [
           newItem("爆款文案")
         ]},
-        { id: "c3", name: "东野圭吾", type: "category", emoji: "🕵️", color: CATEGORY_COLORS[2], collapsed: false, children: [
+        { id: "c3", name: "东野圭吾", type: "category", emoji: "🕵️", color: CATEGORY_COLORS[2], collapsed: true, children: [
           newItem("放学后")
         ]}
       ]
@@ -1294,7 +1294,7 @@
       if (n.type === "category") {
         var items = n.children.filter(function (b) { return !q || b.name.toLowerCase().indexOf(q) > -1; });
         if (q && items.length === 0) return;
-        var collapsed = n.collapsed && !q;
+        var collapsed = (n.collapsed !== false) && !q;
         html += '<div class="cat' + (collapsed ? " collapsed" : "") + '" data-cat="' + n.id + '" style="--cat:' + catColor(n) + ';--cat-soft:' + softColor(catColor(n)) + '">';
         html += '<div class="cat-head" data-act="toggle" data-node="' + n.id + '">';
         html += '<span class="cat-chevron">▾</span>';
@@ -1861,7 +1861,7 @@
 
   /* actions */
   function addCategory() {
-    var c = { id: uid(), name: "新分类", type: "category", emoji: "📚", color: CATEGORY_COLORS[data.nodes.length % CATEGORY_COLORS.length], collapsed: false, children: [] };
+    var c = { id: uid(), name: "新分类", type: "category", emoji: "📚", color: CATEGORY_COLORS[data.nodes.length % CATEGORY_COLORS.length], collapsed: true, children: [] };
     data.nodes.push(c);
     data.search = ""; searchInput.value = "";
     save(); renderSidebar();
@@ -2098,7 +2098,7 @@
     var head = e.target.closest('[data-act="toggle"]');
     if (head && !e.target.closest('[data-act="rename"]')) {
       var n = findNode(head.getAttribute("data-node"));
-      if (n) { n.collapsed = !n.collapsed; save(); renderSidebar(); }
+      if (n) { n.collapsed = !(n.collapsed === true || n.collapsed === undefined); save(); renderSidebar(); }
       return;
     }
     var tr = e.target.closest('[data-act="trash"]');
