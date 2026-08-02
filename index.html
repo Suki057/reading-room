@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v33-migrate-v3-titles" />
+<meta name="build" content="v34-remove-donestat" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -200,8 +200,6 @@
   .mini-bar { width: 38px; height: 5px; flex: none; border-radius: 5px; background: var(--line); overflow: hidden; }
   .mini-bar i { display: block; height: 100%; width: 0%; background: var(--cat, var(--accent)); border-radius: 5px; transition: width .4s var(--ease); box-shadow: 0 0 8px rgba(143,207,227,.35); }
 
-  .sidebar-foot { padding: 12px 20px; border-top: 1px solid var(--line-soft); font-size: 12px; color: var(--muted); display: flex; gap: 14px; font-weight: 600; }
-  .sidebar-foot b { color: var(--ink-soft); font-weight: 800; }
   .empty-list { padding: 16px 14px; text-align: center; color: var(--muted); font-size: 13px; }
 
   /* emoji popover */
@@ -534,14 +532,13 @@
   .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 12px 24px rgba(143,207,227,.38), 0 0 32px rgba(252,236,198,.28), inset 0 1px 0 rgba(255,255,255,.6); }
   .btn-primary:active { transform: translateY(0); }
 
-  /* 底部统计条 */
-  .sidebar-foot { padding: 12px 16px 16px; gap: 10px; }
-  .foot-stat { flex: 1; display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; background: var(--surface); border: 1px solid var(--line-soft); border-radius: 13px; align-items: center; backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); }
-  .foot-stat b { font-size: 18px; color: var(--ink); line-height: 1; font-family: var(--font-display); }
-  .foot-stat span { font-size: 10.5px; }
+  /* 底部操作按钮（已读完板块已移除，四个按钮落到底部） */
+  .sidebar > .data-actions:last-child { padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
 
   /* 数据导出/导入 */
   .data-actions { display: flex; gap: 10px; padding: 12px 16px 6px; }
+  .sidebar > .data-actions:first-child { border-top: 1px solid var(--line-soft); margin-top: 4px; padding-top: 14px; }
+  .sidebar > .data-actions:last-child { padding-bottom: 16px; }
   .data-btn { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 10px; border-radius: 12px; font-size: 13px; font-weight: 700; font-family: inherit; color: var(--ink-soft); background: var(--surface); border: 1px solid var(--line-soft); cursor: pointer; transition: all .18s var(--ease); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); }
   .data-btn:hover { color: var(--accent-ink); border-color: var(--accent); background: rgba(143,207,227,.16); }
   .data-btn:active { transform: translateY(1px); }
@@ -817,9 +814,6 @@
       <button class="data-btn" id="copyUrl" type="button">🔗 复制地址</button>
       <input type="file" id="iconFile" accept="image/*" hidden />
       <input type="file" id="importFile" accept="application/json,.json" hidden />
-    </div>
-    <div class="sidebar-foot">
-      <div class="foot-stat"><b id="statDone">0</b><span>已读完</span></div>
     </div>
   </aside>
 
@@ -1160,7 +1154,6 @@
   var catList = document.getElementById("catList");
   var detail = document.getElementById("detail");
   var searchInput = document.getElementById("search");
-  var statDone = document.getElementById("statDone");
 
   /* ---- cover fetching (Open Library real book covers) ---- */
   function fetchCovers(title) {
@@ -1255,8 +1248,6 @@
       "</div>";
     if (!html) html = '<div class="empty-list">' + (q ? "未找到匹配" : "暂无内容") + "</div>";
     catList.innerHTML = html;
-    var items = allItems();
-    statDone.textContent = items.filter(isDone).length;
   }
   function setSidebarActive(id) {
     catList.querySelectorAll(".is-active").forEach(function (el) { el.classList.remove("is-active"); });
