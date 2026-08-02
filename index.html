@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v37-brand-redesign" />
+<meta name="build" content="v38-move-addbook-above-trash" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -456,6 +456,9 @@
   .nav-trash { display: flex; align-items: center; gap: 10px; margin-top: 10px; padding: 10px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--ink-soft); font-weight: 700; font-size: 14px; transition: background .16s var(--ease), color .16s var(--ease); }
   .nav-trash:hover { background: var(--surface-2); color: var(--ink); }
   .nav-trash.is-active { background: var(--accent-soft); color: var(--accent-ink); }
+  /* 列表底部的添加书籍按钮（位于回收站上方） */
+  .add-book-row { margin: 10px 2px 6px; padding-top: 10px; border-top: 1px solid var(--line-soft); }
+  .add-book-btn { width: 100%; }
   .trash-ico { font-size: 16px; }
   .trash-badge { margin-left: auto; background: var(--coral-soft); color: var(--coral); font-size: 11px; font-weight: 800; padding: 1px 8px; border-radius: 10px; }
   .trash-actions { margin: 4px 0 14px; }
@@ -801,10 +804,6 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
         <input id="search" type="text" placeholder="搜索条目…" autocomplete="off" />
       </div>
-    </div>
-
-    <div class="sidebar-actions">
-      <button class="btn btn-primary" id="addCategory">＋ 添加书籍📚</button>
     </div>
 
     <div class="nav-section">
@@ -1250,6 +1249,7 @@
         html += "</div></div>";
       }
     });
+    html += '<div class="add-book-row"><button class="btn btn-primary" data-act="add-category">＋ 添加书籍📚</button></div>';
     html += '<div class="nav-trash' + (data.selectedId === "trash" ? " is-active" : "") + '" data-act="trash" data-node="trash">' +
       '<span class="trash-ico">🗑️</span><span>回收站</span>' +
       (data.trash && data.trash.length ? '<span class="trash-badge">' + data.trash.length + "</span>" : "") +
@@ -1940,6 +1940,8 @@
     if (del) { e.stopPropagation(); var dn = findNode(del.getAttribute("data-node")); if (dn) softDelete(dn); return; }
     var add = e.target.closest('[data-act="add-item"]');
     if (add) { e.stopPropagation(); addItem(add.getAttribute("data-node")); return; }
+    var ac = e.target.closest('[data-act="add-category"]');
+    if (ac) { e.stopPropagation(); addCategory(); return; }
     var head = e.target.closest('[data-act="toggle"]');
     if (head && !e.target.closest('[data-act="rename"]')) {
       var n = findNode(head.getAttribute("data-node"));
@@ -1978,7 +1980,6 @@
     if (e.key === "Enter" && e.target.closest('[data-act="rename"]')) { e.preventDefault(); e.target.blur(); }
   });
 
-  document.getElementById("addCategory").addEventListener("click", addCategory);
   document.getElementById("toastUndo").addEventListener("click", undoDelete);
   var bgRollBtn = document.getElementById("bgRoll");
   if (bgRollBtn) bgRollBtn.addEventListener("click", function () {
