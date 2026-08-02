@@ -4,102 +4,108 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v43-title-emoji-freeinput" />
+<meta name="build" content="v44-crayon-shinchan" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
     color-scheme: light;
-    --paper:      #FDFAF6;
-    --surface:    rgba(255,255,255,0.64);
-    --surface-2:  rgba(255,255,255,0.46);
-    --ink:        #33414a;
-    --ink-soft:   #62727c;
-    --muted:      #93a1aa;
-    --line:       rgba(255,255,255,0.78);
-    --line-soft:  rgba(255,255,255,0.52);
-    --accent:     #8FCFE3;
-    --accent-2:   #A8DDF0;
-    --accent-ink: #3f8ba6;
-    --accent-soft: rgba(143,207,227,0.24);
-    --coral:      #F9E6B8;
-    --coral-soft: rgba(249,230,184,0.24);
-    --pink:       #F9E6B8;
-    --pink-soft:  rgba(249,230,184,0.24);
-    --pink-ink:   #A67C3D;
-    --amber:      #FCECC6;
-    --amber-soft: rgba(252,236,198,0.26);
-    --radius: 26px;
+    /* 蜡笔小新暖色系：奶油底 + 小新红 + 小葵黄 */
+    --paper:      #FFF7E9;
+    --surface:    rgba(255,255,255,0.74);
+    --surface-2:  rgba(255,255,255,0.52);
+    --ink:        #4A3B33;
+    --ink-soft:   #7A6860;
+    --muted:      #B09A8C;
+    --line:       rgba(255,255,255,0.82);
+    --line-soft:  rgba(255,255,255,0.58);
+    --accent:     #EA5B4B;
+    --accent-2:   #FCD535;
+    --accent-ink: #C8412B;
+    --accent-soft: rgba(234,91,75,0.18);
+    --coral:      #FCD535;
+    --coral-soft: rgba(252,213,53,0.22);
+    --pink:       #FCD535;
+    --pink-soft:  rgba(252,213,53,0.22);
+    --pink-ink:   #B8860B;
+    --amber:      #FFE08A;
+    --amber-soft: rgba(255,224,138,0.30);
+    --ink-line:   rgba(58,46,40,0.20);
+    --crayon:     #3A2E28;
+    --radius: 24px;
     --radius-sm: 18px;
-    --shadow-xs: 0 2px 6px rgba(45,58,66,.06), inset 0 1px 0 rgba(255,255,255,.55);
-    --shadow-sm: 0 10px 28px rgba(45,58,66,.10), inset 0 1px 0 rgba(255,255,255,.60);
-    --shadow-md: 0 20px 50px rgba(45,58,66,.14), inset 0 1px 0 rgba(255,255,255,.65);
-    --shadow-lg: 0 36px 84px rgba(45,58,66,.18), inset 0 1px 0 rgba(255,255,255,.70);
+    --shadow-xs: 0 2px 6px rgba(74,59,51,.07), inset 0 1px 0 rgba(255,255,255,.6);
+    --shadow-sm: 0 10px 28px rgba(74,59,51,.12), inset 0 1px 0 rgba(255,255,255,.65);
+    --shadow-md: 0 20px 50px rgba(74,59,51,.16), inset 0 1px 0 rgba(255,255,255,.7);
+    --shadow-lg: 0 36px 84px rgba(74,59,51,.20), inset 0 1px 0 rgba(255,255,255,.75);
     --ease: cubic-bezier(0.22, 0.8, 0.36, 1);
     --blur: blur(30px) saturate(200%);
-    --font-display: "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", -apple-system, sans-serif;
-    --font-ui: "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", -apple-system, sans-serif;
+    --font-display: "Hannotate SC", "Yuanti SC", "Xingkai SC", "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", sans-serif;
+    --font-ui: "Hannotate SC", "Yuanti SC", "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", sans-serif;
 
-    /* liquid-glass scenery tokens */
-    --sun-glow: rgba(143,207,227,.32);
-    --sun-disk: #8FCFE3;
-    --hero-sky: #f4fafc;
-    --hero-far: #e2f1f7;
-    --hero-mid: #eef8fb;
-    --hero-near: #fdf8f0;
-    --mtn-far: rgba(143,207,227,.22);
-    --mtn-mid: rgba(168,221,240,.18);
-    --mtn-near: rgba(200,232,243,.15);
-    --mist: rgba(255,255,255,.52);
-    --bird: #7d8b93;
+    /* 蜡笔小新暖色场景 token */
+    --sun-glow: rgba(252,213,53,.34);
+    --sun-disk: #FCD535;
+    --hero-sky: #FFF1D6;
+    --hero-far: #FCD9A8;
+    --hero-mid: #FFE7BE;
+    --hero-near: #FFF7E9;
+    --mtn-far: rgba(234,91,75,.20);
+    --mtn-mid: rgba(245,147,49,.18);
+    --mtn-near: rgba(252,213,53,.16);
+    --mist: rgba(255,255,255,.5);
+    --bird: #7A6860;
   }
   [data-theme="dark"] {
     color-scheme: dark;
-    --paper:      #1e2830;
-    --surface:    rgba(255,255,255,0.12);
-    --surface-2:  rgba(255,255,255,0.08);
-    --ink:        #eef5f8;
-    --ink-soft:   #bccbd4;
-    --muted:      #829099;
+    --paper:      #2A211C;
+    --surface:    rgba(255,255,255,0.10);
+    --surface-2:  rgba(255,255,255,0.07);
+    --ink:        #F7EDE3;
+    --ink-soft:   #D8C7B8;
+    --muted:      #A7907F;
     --line:       rgba(255,255,255,0.18);
     --line-soft:  rgba(255,255,255,0.10);
-    --accent:     #8ed3e8;
-    --accent-2:   #a8ddf0;
-    --accent-ink: #b5e5f4;
-    --accent-soft: rgba(142,211,232,0.22);
-    --coral:      #f5dca6;
-    --coral-soft: rgba(245,220,166,0.22);
-    --amber:      #f7e6c4;
+    --accent:     #F2735F;
+    --accent-2:   #FCD535;
+    --accent-ink: #F9A08F;
+    --accent-soft: rgba(242,115,95,0.20);
+    --coral:      #FCD535;
+    --coral-soft: rgba(252,213,53,0.20);
+    --amber:      #F7E6C4;
     --amber-soft: rgba(247,230,196,0.18);
-    --sun-glow: rgba(142,211,232,.22);
+    --ink-line:   rgba(247,237,227,0.22);
+    --crayon:     #F7EDE3;
     --blur: blur(32px) saturate(180%);
-    --sun-disk: #b5e5f4;
-    --hero-sky: #1e2830;
-    --hero-far: #27343e;
-    --hero-mid: #222e37;
-    --hero-near: #1a232b;
-    --mtn-far: rgba(142,211,232,.22);
-    --mtn-mid: rgba(142,211,232,.20);
-    --mtn-near: rgba(181,229,244,.10);
+    --sun-glow: rgba(252,213,53,.22);
+    --sun-disk: #FCD535;
+    --hero-sky: #2A211C;
+    --hero-far: #3A2E28;
+    --hero-mid: #332822;
+    --hero-near: #2A211C;
+    --mtn-far: rgba(242,115,95,.20);
+    --mtn-mid: rgba(245,147,49,.18);
+    --mtn-near: rgba(252,213,53,.12);
     --mist: rgba(255,255,255,.06);
-    --bird: #93a3ac;
+    --bird: #A7907F;
   }
 
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
   html, body { height: 100%; margin: 0; }
-  body { font-family: var(--font-ui); color: var(--ink); background: linear-gradient(180deg, #FDFBF7 0%, #EDF7FB 55%, #D6EEF7 100%) fixed; -webkit-font-smoothing: antialiased; line-height: 1.6; overflow: hidden; }
+  body { font-family: var(--font-ui); color: var(--ink); background: linear-gradient(180deg, #FFF7E9 0%, #FFE9C7 52%, #FBD9B0 100%) fixed; -webkit-font-smoothing: antialiased; line-height: 1.6; overflow: hidden; }
   body::before {
     content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
-    background: rgba(255,255,255,.28);
+    background: rgba(255,255,255,.30);
   }
+  /* 蜡笔涂鸦光斑：小新红 + 小葵黄 */
   body::after {
     content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
     background:
-      radial-gradient(circle at 15% 18%, rgba(143,207,227,.16), transparent 42%),
-      radial-gradient(circle at 88% 24%, rgba(168,221,240,.14), transparent 40%),
-      radial-gradient(circle at 72% 86%, rgba(143,207,227,.13), transparent 46%),
-      radial-gradient(circle at 32% 78%, rgba(200,232,243,.12), transparent 50%),
-      radial-gradient(circle at 52% 48%, rgba(255,255,255,.25), transparent 58%);
+      radial-gradient(circle at 14% 16%, rgba(234,91,75,.14), transparent 42%),
+      radial-gradient(circle at 88% 22%, rgba(252,213,53,.18), transparent 40%),
+      radial-gradient(circle at 74% 88%, rgba(234,91,75,.10), transparent 46%),
+      radial-gradient(circle at 30% 80%, rgba(252,213,53,.12), transparent 50%),
+      radial-gradient(circle at 52% 50%, rgba(255,255,255,.28), transparent 58%);
   }
   @keyframes orbFloat { from { transform: translate3d(-1.5%, -1%, 0) scale(1); } to { transform: translate3d(2%, 1.5%, 0) scale(1.06); } }
   button { font-family: inherit; cursor: pointer; }
@@ -113,7 +119,8 @@
   .sidebar { display: flex; flex-direction: column; background: linear-gradient(180deg, rgba(255,255,255,0.58) 0%, rgba(255,255,255,0.36) 55%, rgba(237,247,251,0.44) 100%); border-right: 1px solid var(--line); min-height: 0; box-shadow: var(--shadow-lg); position: relative; backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); }
   .sidebar::before { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 1px 0 rgba(255,255,255,.85); pointer-events: none; }
   .brand { display: flex; align-items: center; gap: 12px; padding: 18px 18px 16px; border-bottom: 1px solid var(--line-soft); }
-  .avatar { width: 44px; height: 44px; flex: none; border-radius: 50%; display: grid; place-items: center; font-size: 22px; color: #fff; overflow: hidden; background: linear-gradient(150deg, #8FCFE3, #FCECC6); box-shadow: var(--shadow-sm), 0 0 20px rgba(143,207,227,.35); position: relative; }
+  .avatar { width: 56px; height: 56px; flex: none; border-radius: 18px; display: grid; place-items: center; font-size: 28px; color: #fff; overflow: hidden; background: linear-gradient(150deg, #EA5B4B, #FCD535); box-shadow: var(--shadow-sm), 0 0 20px rgba(234,91,75,.32); position: relative; cursor: pointer; border: 2.5px solid var(--crayon); transition: transform .16s var(--ease); }
+  .avatar:hover { transform: rotate(-4deg) scale(1.04); }
   .avatar::after { content: ""; position: absolute; inset: -3px; border-radius: inherit; border: 2px solid rgba(255,255,255,.55); }
   .avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: inherit; z-index: 1; }
   .brand-text { flex: 1; min-width: 0; }
@@ -384,12 +391,18 @@
   .mark-done { margin-top: 16px; }
 
   /* Home view */
-  .home-hero { position: relative; border-radius: 30px; overflow: hidden; padding: 18px 22px; margin-bottom: 24px; background: linear-gradient(135deg, rgba(255,255,255,0.62) 0%, rgba(237,247,251,0.46) 60%, rgba(214,238,247,0.38) 100%); border: 1px solid rgba(255,255,255,.32); box-shadow: 0 20px 46px rgba(45,58,66,.10), 0 3px 12px rgba(45,58,66,.05), inset 0 1px 1px rgba(255,255,255,.55); min-height: auto; display: flex; align-items: center; animation: rise .6s var(--ease) both; isolation: isolate; }
-  .home-hero .hero-scene { display: none; }
-  .home-hero .hero-text { position: relative; z-index: 1; width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; padding: 0; }
-  .home-hero .hero-date { margin: 0; text-shadow: none; }
-  .hero-weather { margin: 0; font-size: 14px; font-weight: 700; color: var(--ink); text-shadow: none; }
-  .hero-date { font-size: 12px; letter-spacing: 1.6px; text-transform: uppercase; color: var(--ink-soft); font-weight: 700; }
+  /* Home view · 今日面板（日期 + 天气 + 语录 合一） */
+  .home-hero { position: relative; border-radius: var(--radius); overflow: hidden; padding: 22px 24px 24px; margin-bottom: 24px; background: linear-gradient(135deg, rgba(255,255,255,0.66) 0%, rgba(255,233,199,0.50) 60%, rgba(251,217,176,0.42) 100%); border: 2.5px solid var(--ink-line); box-shadow: var(--shadow-md); min-height: auto; display: flex; align-items: stretch; animation: rise .6s var(--ease) both; isolation: isolate; }
+  .home-hero .hero-scene { position: absolute; inset: 0; z-index: 0; opacity: .5; pointer-events: none; }
+  .home-hero .hero-scene svg { width: 100%; height: 100%; display: block; }
+  .home-hero .hero-content { position: relative; z-index: 1; width: 100%; display: flex; flex-direction: column; gap: 14px; }
+  .home-hero .hero-top { display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .hero-date { font-size: 13px; letter-spacing: 1px; text-transform: none; color: var(--accent-ink); font-weight: 800; }
+  .hero-weather { margin: 0 52px 0 0; font-size: 14px; font-weight: 700; color: var(--ink); background: var(--accent-soft); border: 1.5px solid var(--accent); border-radius: 20px; padding: 3px 12px; white-space: nowrap; }
+  .hero-quote { display: flex; flex-direction: column; gap: 6px; padding: 14px 16px; background: rgba(255,255,255,.6); border: 1.5px dashed var(--ink-line); border-radius: 16px; }
+  .hq-mark { font-size: 18px; line-height: 1; }
+  .hq-text { font-family: var(--font-display); font-size: 17px; font-style: italic; color: var(--ink-soft); line-height: 1.5; }
+  .hq-author { font-size: 13px; color: var(--muted); font-weight: 600; align-self: flex-end; }
   .home-hero h1 { display: none; }
   .hero-sub { display: none; }
   .hero-sun { transform-origin: 624px 74px; animation: floatY 7s ease-in-out infinite; }
@@ -787,8 +800,29 @@
     .nav-trash { padding: 10px 10px; }
   }
 
+  /* ===== 蜡笔小新风格：卡片蜡笔描边 + 角色贴纸 ===== */
+  .stat-card, .list-card, .card, .quote-panel, .welcome, .title-screen, .nav-tool {
+    border: 2.5px solid var(--ink-line);
+  }
+  .stat-card, .list-card, .card, .quote-panel, .welcome, .title-screen { position: relative; }
+  .stat-grid .stat-card:nth-child(1) { background: linear-gradient(145deg, rgba(252,213,53,0.32) 0%, rgba(255,233,199,0.22) 100%); }
+  .stat-grid .stat-card:nth-child(2) { background: linear-gradient(145deg, rgba(234,91,75,0.20) 0%, rgba(255,255,255,0.30) 100%); }
+  .home-cols .list-card:nth-child(1) { background: linear-gradient(145deg, rgba(234,91,75,0.16) 0%, rgba(255,233,199,0.24) 100%); }
+
+  /* 角色贴纸：板块右上角空白处的蜡笔小新元素 */
+  .crayon-sticker { position: absolute; top: 6px; right: 8px; width: 46px; height: 46px; pointer-events: none; z-index: 4; transform: rotate(-7deg); filter: drop-shadow(0 3px 4px rgba(58,46,40,.20)); animation: stickerWobble 4.5s ease-in-out infinite; }
+  .crayon-sticker svg { width: 100%; height: 100%; display: block; }
+  @keyframes stickerWobble { 0%,100% { transform: rotate(-7deg) translateY(0); } 50% { transform: rotate(-3deg) translateY(-3px); } }
+  @media (prefers-reduced-motion: reduce) { .crayon-sticker { animation: none; } }
+
+  /* 侧栏底部工具行（导出/导入/复制） */
+  .nav-tool { display: flex; align-items: center; gap: 10px; padding: 11px 12px; margin-top: 4px; border-radius: 14px; background: var(--surface); color: var(--ink-soft); font-size: 13px; font-weight: 700; cursor: pointer; transition: all .16s var(--ease); }
+  .nav-tool:hover { color: var(--accent-ink); border-color: var(--accent); background: var(--accent-soft); }
+  .nav-tool:active { transform: translateY(1px); }
+  .nav-tool .nt-ic { font-size: 16px; }
+
 </style>
-<meta name="theme-color" content="#FDFAF6" />
+<meta name="theme-color" content="#FFF7E9" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -800,6 +834,8 @@
 <div class="bg-photo" id="bgPhoto" aria-hidden="true"></div>
 <div class="bg-tint" aria-hidden="true"></div>
 <input type="file" id="heroBgFile" accept="image/*" hidden />
+<input type="file" id="iconFile" accept="image/*" hidden />
+<input type="file" id="importFile" accept="application/json,.json" hidden />
 
 <div class="app" id="app">
   <button class="sidebar-toggle" id="sidebarToggle" aria-label="打开导航">
@@ -809,7 +845,7 @@
 
   <aside class="sidebar">
     <div class="brand">
-      <div class="avatar" id="avatar">
+      <div class="avatar" id="avatar" title="双击更换图标（拍照 / 选图）">
         <img id="avatarImg" alt="" hidden />
         <span id="avatarEmoji">📖</span>
       </div>
@@ -831,17 +867,6 @@
       <span class="nav-section-sub" id="bookCount">0 本</span>
     </div>
     <nav class="cat-list" id="catList"></nav>
-
-    <div class="data-actions">
-      <button class="data-btn" id="exportData" type="button">⬇ 导出备份</button>
-      <button class="data-btn" id="importData" type="button">⬆ 导入恢复</button>
-    </div>
-    <div class="data-actions">
-      <button class="data-btn" id="changeIcon" type="button">🎨 更换图标</button>
-      <button class="data-btn" id="copyUrl" type="button">🔗 复制地址</button>
-      <input type="file" id="iconFile" accept="image/*" hidden />
-      <input type="file" id="importFile" accept="application/json,.json" hidden />
-    </div>
   </aside>
 
   <main class="detail" id="detail"></main>
@@ -859,6 +884,16 @@
   var STORE_KEY = "reading-workbench-v3";
   var CATEGORY_COLORS = ["#8FCFE3","#FCECC6","#BFE3EF","#FDFAF6","#FDF0D4","#F9E6B8","#A9DCEC","#FDF0D4","#E8F4F8","#FDF5E6"];
   var EMOJIS = ["📚","📖","💡","🧠","🎯","🛠️","🎨","🎵","🎬","✍️","📝","🔍","🌟","🌿","🌈","☕","🍃","🔥","🚀","🌸","🐱","🍀","⭐","💎","🌊","🎮","📷","💻","🧘","🌞","🌙","🍰"];
+
+  /* 蜡笔小新角色贴纸（内联 SVG，描边随主题 crayon 色） */
+  var CHAR_SVG = {
+    shiro: '<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><ellipse cx="24" cy="31" rx="13" ry="10" fill="#fff" stroke="#3A2E28" stroke-width="2"/><circle cx="24" cy="18" r="8.5" fill="#fff" stroke="#3A2E28" stroke-width="2"/><path d="M15 12 L12 4 M33 12 L36 4" stroke="#3A2E28" stroke-width="2" stroke-linecap="round"/><circle cx="20.5" cy="18" r="1.5" fill="#3A2E28"/><circle cx="27.5" cy="18" r="1.5" fill="#3A2E28"/><path d="M22 21.5 q2 2 4 0" stroke="#3A2E28" stroke-width="1.4" fill="none" stroke-linecap="round"/><ellipse cx="41" cy="33" rx="4" ry="3" fill="#fff" stroke="#3A2E28" stroke-width="2"/></svg>',
+    himawari: '<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><circle cx="24" cy="22" r="13" fill="#FFE08A" stroke="#3A2E28" stroke-width="2"/><path d="M24 9 q3 -7 7 -2 q-1 5 -7 4" fill="#3A2E28"/><circle cx="19" cy="21" r="1.8" fill="#3A2E28"/><circle cx="29" cy="21" r="1.8" fill="#3A2E28"/><path d="M21 27 q3 3 6 0" stroke="#3A2E28" stroke-width="1.5" fill="none" stroke-linecap="round"/><path d="M13 35 h22 v9 a11 11 0 0 1 -22 0 z" fill="#EA5B4B" stroke="#3A2E28" stroke-width="2"/></svg>',
+    misae: '<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><circle cx="24" cy="24" r="13" fill="#FFE0C2" stroke="#3A2E28" stroke-width="2"/><path d="M11 20 q-2 -15 13 -15 q15 0 13 15 q-4 -7 -13 -7 q-9 0 -13 7z" fill="#7A4A2E" stroke="#3A2E28" stroke-width="1.5"/><circle cx="19" cy="24" r="1.8" fill="#3A2E28"/><circle cx="29" cy="24" r="1.8" fill="#3A2E28"/><path d="M21 30 q3 2 6 0" stroke="#3A2E28" stroke-width="1.5" fill="none" stroke-linecap="round"/><circle cx="24" cy="27" r="2" fill="#EA5B4B"/></svg>',
+    kazama: '<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><circle cx="24" cy="22" r="12" fill="#FFE0C2" stroke="#3A2E28" stroke-width="2"/><path d="M12 18 q2 -12 12 -12 q12 0 12 12 q-3 -4 -12 -4 q-9 0 -12 4z" fill="#3A2E28" stroke="#3A2E28" stroke-width="1.5"/><circle cx="19" cy="22" r="3.2" fill="none" stroke="#3A2E28" stroke-width="1.6"/><circle cx="29" cy="22" r="3.2" fill="none" stroke="#3A2E28" stroke-width="1.6"/><path d="M22.2 22 h3.6" stroke="#3A2E28" stroke-width="1.6"/><path d="M21 28 q3 2 6 0" stroke="#3A2E28" stroke-width="1.5" fill="none" stroke-linecap="round"/><path d="M16 34 h16 v9 a8 8 0 0 1 -16 0 z" fill="#EA5B4B" stroke="#3A2E28" stroke-width="2"/></svg>',
+    boo: '<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><circle cx="24" cy="22" r="12" fill="#FFE0C2" stroke="#3A2E28" stroke-width="2"/><path d="M12 20 q0 -12 12 -12 q12 0 12 12 q-3 -5 -12 -5 q-9 0 -12 5z" fill="#5B3A2A" stroke="#3A2E28" stroke-width="1.5"/><path d="M14 16 q-3 -4 -6 -2" stroke="#3A2E28" stroke-width="2" stroke-linecap="round"/><circle cx="19" cy="23" r="1.6" fill="#3A2E28"/><circle cx="29" cy="23" r="1.6" fill="#3A2E28"/><path d="M20 27 q4 1 8 0" stroke="#3A2E28" stroke-width="1.4" fill="none"/><path d="M24 27 q0 6 2 9" stroke="#7FB069" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>'
+  };
+  function sticker(name) { return '<span class="crayon-sticker" aria-hidden="true">' + (CHAR_SVG[name] || "") + "</span>"; }
 
   function pad2(n) { return String(n).padStart(2, "0"); }
   function todayKey() { var d = new Date(); return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate()); }
@@ -963,10 +998,20 @@
       '<path d="M204 84 q7 -6 14 0 q7 -6 14 0" stroke="var(--bird)" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.35"/>' +
     '</svg>';
   function heroHTML(dateStr) {
+    var q = quoteForToday();
     return '<div class="home-hero" id="homeHero">' +
-      '<div class="hero-text">' +
-        '<p class="hero-date">' + esc(dateStr) + '</p>' +
-        '<p class="hero-weather" id="heroWeather">' + esc(heroWeatherText) + '</p>' +
+      '<div class="hero-scene">' + HERO_SVG + '</div>' +
+      sticker("misae") +
+      '<div class="hero-content">' +
+        '<div class="hero-top">' +
+          '<div class="hero-date">📅 ' + esc(dateStr) + '</div>' +
+          '<div class="hero-weather" id="heroWeather">' + esc(heroWeatherText) + '</div>' +
+        '</div>' +
+        '<div class="hero-quote">' +
+          '<span class="hq-mark">📜</span>' +
+          '<span class="hq-text">“' + esc(q.t) + '”</span>' +
+          '<span class="hq-author">— ' + esc(q.a) + '</span>' +
+        '</div>' +
       '</div>' +
     '</div>';
   }
@@ -1273,6 +1318,9 @@
       '<span class="trash-ico">🗑️</span><span>回收站</span>' +
       (data.trash && data.trash.length ? '<span class="trash-badge">' + data.trash.length + "</span>" : "") +
       "</div>";
+    html += '<div class="nav-tool" data-act="export"><span class="nt-ic">⬇</span><span>导出备份</span></div>';
+    html += '<div class="nav-tool" data-act="import"><span class="nt-ic">⬆</span><span>导入恢复</span></div>';
+    html += '<div class="nav-tool" data-act="copy"><span class="nt-ic">🔗</span><span>复制地址</span></div>';
     if (!html) html = '<div class="empty-list">' + (q ? "未找到匹配" : "暂无内容") + "</div>";
     catList.innerHTML = html;
   }
@@ -1294,6 +1342,7 @@
   function renderWelcome() {
     detail.innerHTML =
       '<div class="welcome">' +
+        sticker("shiro") +
         '<div class="welcome-mark">📖</div>' +
         "<h2>开始你的记录</h2><p>点击左侧任意条目，即可在右侧记录页数、进度、总结与复盘。</p>" +
         '<button class="btn btn-accent" id="welcomeAdd">＋ 添加分类</button>' +
@@ -1360,18 +1409,15 @@
 
     if (!weatherRequested) { weatherRequested = true; loadWeather(); }
 
-    var q = quoteForToday();
     var html =
       '<div class="detail-inner"><div class="home">' +
         heroHTML(dateStr) +
-        '<section class="quote-panel"><div class="quote-head">📜 读书语录</div>' +
-        '<blockquote class="daily-quote">“' + esc(q.t) + '”<cite>' + esc(q.a) + '</cite></blockquote></section>' +
         '<div class="stat-grid">' +
-          statCard(done.length, "已读完") +
-          statCard(totalReads, "累计阅读次数") +
+          statCard(done.length, "已读完", "📚", "himawari") +
+          statCard(totalReads, "累计阅读次数", "🔁", "kazama") +
         "</div>" +
         '<div class="home-cols">' +
-          listCard("继续阅读", ongoing, false) +
+          listCard("继续阅读", ongoing, false, "boo") +
         "</div>" +
       "</div></div>";
     detail.innerHTML = html;
@@ -1395,9 +1441,9 @@
       });
     });
   }
-  function statCard(num, lbl, icon) { return '<div class="stat-card"><span class="stat-ic">' + (icon || "📊") + '</span><span class="stat-body"><span class="stat-num">' + num + '</span><span class="stat-lbl">' + lbl + "</span></span></div>"; }
+  function statCard(num, lbl, icon, charName) { return '<div class="stat-card">' + (charName ? sticker(charName) : "") + '<span class="stat-ic">' + (icon || "📊") + '</span><span class="stat-body"><span class="stat-num">' + num + '</span><span class="stat-lbl">' + lbl + "</span></span></div>"; }
   function byDateDesc(a, b) { return (b.finishedDate || "").localeCompare(a.finishedDate || ""); }
-  function listCard(title, items, doneMode) {
+  function listCard(title, items, doneMode, charName) {
     var icon = doneMode ? "✅" : "📖";
     var body = "";
     if (!items.length) {
@@ -1411,7 +1457,7 @@
           '<span class="lr-meta">' + esc(meta) + "</span></div>";
       });
     }
-    return '<section class="list-card"><h2><span class="lc-ic">' + icon + '</span>' + esc(title) + "</h2>" + body + "</section>";
+    return '<section class="list-card">' + (charName ? sticker(charName) : "") + '<h2><span class="lc-ic">' + icon + '</span>' + esc(title) + "</h2>" + body + "</section>";
   }
 
   function field(label, control) { return '<div class="field"><label>' + label + "</label>" + control + "</div>"; }
@@ -2052,6 +2098,15 @@
     }
     var tr = e.target.closest('[data-act="trash"]');
     if (tr) { e.stopPropagation(); data.selectedId = "trash", save(); renderSidebar(); renderDetail(); return; }
+    var tool = e.target.closest('[data-act="export"], [data-act="import"], [data-act="copy"]');
+    if (tool) {
+      e.stopPropagation();
+      var act = tool.getAttribute("data-act");
+      if (act === "export") { exportData(); }
+      else if (act === "import") { var fi = document.getElementById("importFile"); if (fi) fi.click(); }
+      else if (act === "copy") { copyPermaUrl(); }
+      return;
+    }
     var sel = e.target.closest('[data-act="select"]');
     var nameEl = e.target.closest('[data-act="rename"]');
     var editingName = nameEl && !nameEl.readOnly;
@@ -2130,8 +2185,6 @@
     };
     reader.readAsText(file);
   }
-  document.getElementById("exportData").addEventListener("click", exportData);
-  document.getElementById("importData").addEventListener("click", function () { document.getElementById("importFile").click(); });
   document.getElementById("importFile").addEventListener("change", function (e) {
     var f = e.target.files && e.target.files[0];
     importData(f); e.target.value = "";
@@ -2171,7 +2224,9 @@
     };
     reader.readAsDataURL(file);
   }
-  document.getElementById("changeIcon").addEventListener("click", function () { document.getElementById("iconFile").click(); });
+  /* 侧栏头像：双击即可更换图标（移动端可拍照或选图） */
+  var avatarEl = document.getElementById("avatar");
+  if (avatarEl) avatarEl.addEventListener("dblclick", function () { var fi = document.getElementById("iconFile"); if (fi) { fi.value = ""; fi.click(); } });
   document.getElementById("iconFile").addEventListener("change", function (e) {
     var f = e.target.files && e.target.files[0];
     if (!f) return;
@@ -2181,13 +2236,13 @@
     });
     e.target.value = "";
   });
-  document.getElementById("copyUrl").addEventListener("click", function () {
+  function copyPermaUrl() {
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(PERMA_URL).then(function () { showToast("已复制永久地址 ✅"); }, function () { showToast("复制失败，请手动复制：" + PERMA_URL); });
     } else {
       showToast("永久地址：" + PERMA_URL);
     }
-  });
+  }
 
   /* theme */
   function applyTheme() {
