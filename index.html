@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v41-title-emoji-changeable" />
+<meta name="build" content="v42-remove-bg-click-change" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -793,7 +793,6 @@
 <body>
 <div class="bg-photo" id="bgPhoto" aria-hidden="true"></div>
 <div class="bg-tint" aria-hidden="true"></div>
-<input type="file" id="bgFile" accept="image/*" hidden />
 <input type="file" id="heroBgFile" accept="image/*" hidden />
 
 <div class="app" id="app">
@@ -1166,10 +1165,6 @@
       img.src = reader.result;
     };
     reader.readAsDataURL(file);
-  }
-  function triggerBgUpload() {
-    var inp = document.getElementById("bgFile");
-    if (!inp) return; inp.value = ""; inp.click();
   }
 
   var app = document.getElementById("app");
@@ -2061,31 +2056,11 @@
   });
 
   document.getElementById("toastUndo").addEventListener("click", undoDelete);
-  var bgRollBtn = document.getElementById("bgRoll");
-  if (bgRollBtn) bgRollBtn.addEventListener("click", function () {
-    data.bgImage = ""; save(); applyBackground();
-  });
-  var bgFileInput = document.getElementById("bgFile");
-  if (bgFileInput) bgFileInput.addEventListener("change", function (e) {
-    var f = e.target.files && e.target.files[0];
-    if (!f) return;
-    compressBg(f, function (out) { data.bgImage = out; save(); applyBackground(); });
-  });
   var heroBgFileInput = document.getElementById("heroBgFile");
   if (heroBgFileInput) heroBgFileInput.addEventListener("change", function (e) {
     var f = e.target.files && e.target.files[0];
     if (!f) return;
     compressBg(f, function (out) { data.heroBgImage = out; save(); applyHeroBackground(); });
-  });
-  /* 连点三下背景区域 → 上传自定义背景图 */
-  var bgClicks = 0, bgClickT = null;
-  document.addEventListener("click", function (e) {
-    var t = e.target;
-    if (t.closest && t.closest("button, input, textarea, select, a, .card, .sidebar, .emoji-pop, .toast, .modal, .sect-title, .nav-name, .app-title, .progress-bar, .session-block")) return;
-    bgClicks++;
-    clearTimeout(bgClickT);
-    bgClickT = setTimeout(function () { bgClicks = 0; }, 650);
-    if (bgClicks >= 3) { bgClicks = 0; triggerBgUpload(); }
   });
   searchInput.addEventListener("input", function () { data.search = searchInput.value; renderSidebar(); });
 
