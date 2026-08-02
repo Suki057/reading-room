@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v58-sidebar-title-edit" />
+<meta name="build" content="v59-cat-toggle" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -2141,21 +2141,27 @@
     if (head) {
       var n = findNode(head.getAttribute("data-node"));
       if (!n) return;
-      if (e.target.closest('[data-act="rename"]')) {
+      var onTitle = !!e.target.closest('[data-act="rename"]');
+      if (onTitle) {
+        /* 连续点标题 3 次 → 进入改名；自动回弹到点击前的折叠态，避免来回跳动 */
         var tid = n.id;
         if (!tripleClicks[tid]) tripleClicks[tid] = { c: 0 };
+        if (tripleClicks[tid].c === 0) tripleClicks[tid].orig = n.collapsed;
         tripleClicks[tid].c++;
         clearTimeout(tripleClicks[tid].t);
-        tripleClicks[tid].t = setTimeout(function () { tripleClicks[tid].c = 0; }, 600);
+        tripleClicks[tid].t = setTimeout(function () { tripleClicks[tid].c = 0; }, 500);
         if (tripleClicks[tid].c >= 3) {
+          n.collapsed = tripleClicks[tid].orig;
           tripleClicks[tid].c = 0;
+          save(); renderSidebar();
           var inp = catList.querySelector('.nav-name[data-node="' + tid + '"]');
           if (inp) { inp.readOnly = false; inp.focus(); inp.select(); }
           return;
         }
       }
-      /* 单击 / 双击 → 展开子类目（不自动收起） */
-      if (n.collapsed !== false) { n.collapsed = false; save(); renderSidebar(); }
+      /* 单击总类目 → 展开 / 收起 切换 */
+      n.collapsed = !n.collapsed;
+      save(); renderSidebar();
       return;
     }
     var tr = e.target.closest('[data-act="trash"]');
