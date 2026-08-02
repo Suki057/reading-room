@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v60-stat-sticker" />
+<meta name="build" content="v61-swipe-fix" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -2195,6 +2195,7 @@
     var row = e.target.closest('.swipe-row');
     if (swipeRow && (!row || !swipeRow.contains(e.target))) closeSwipe();
     if (!row) return;
+    row._suppressClick = false; // 新的一次手势开始：清掉上一次滑动遗留的抑制标记，避免误吞删除点击
     row._sx = e.clientX; row._sy = e.clientY; row._sw = false; row._moved = false;
   }, { passive: true });
   catList.addEventListener("pointermove", function (e) {
