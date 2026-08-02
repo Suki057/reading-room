@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v56-quote-white" />
+<meta name="build" content="v57-home-topbar" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -392,6 +392,11 @@
 
   /* Home view */
   /* Home view · 今日面板（日期 + 天气 + 语录 合一） */
+  .home-topbar { display: none; align-items: center; gap: 12px; margin: 0 0 18px; padding: 12px 16px; border-radius: var(--radius); background: linear-gradient(145deg, rgba(255,255,255,0.64) 0%, rgba(251,234,225,0.46) 100%); border: 1px solid var(--line); box-shadow: var(--shadow-sm); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); animation: rise .5s var(--ease) both; }
+  .home-topbar .topbar-menu { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); box-shadow: var(--shadow-xs); cursor: pointer; touch-action: manipulation; transition: transform .15s var(--ease); }
+  .home-topbar .topbar-menu:active { transform: scale(0.94); }
+  .home-topbar .topbar-menu svg { width: 20px; height: 20px; }
+  .home-topbar .topbar-title { flex: 1; font-family: var(--font-display); font-size: 17px; font-weight: 700; color: var(--ink); letter-spacing: .3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .home-hero { position: relative; border-radius: var(--radius); overflow: hidden; padding: 22px 24px 24px; margin-bottom: 24px; background: linear-gradient(135deg, rgba(255,255,255,0.66) 0%, rgba(214,238,228,0.50) 60%, rgba(206,236,230,0.42) 100%); border: 2.5px solid var(--ink-line); box-shadow: var(--shadow-md); min-height: auto; display: flex; align-items: stretch; animation: rise .6s var(--ease) both; isolation: isolate; }
   .home-hero .hero-scene { position: absolute; inset: 0; z-index: 0; opacity: .5; pointer-events: none; }
   .home-hero .hero-scene svg { width: 100%; height: 100%; display: block; }
@@ -399,14 +404,14 @@
   .home-hero .hero-top { display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap; }
   .hero-date { font-size: 13px; letter-spacing: 1px; text-transform: none; color: var(--accent-ink); font-weight: 800; }
   .hero-weather { margin: 0 52px 0 0; font-size: 14px; font-weight: 700; color: var(--ink); background: var(--accent-soft); border: 1.5px solid var(--accent); border-radius: 20px; padding: 3px 12px; white-space: nowrap; }
-  .hero-quote { display: flex; flex-direction: column; gap: 6px; padding: 14px 16px; background: linear-gradient(135deg, #E07A6F, #D9736A); border: 1.5px dashed rgba(255,255,255,.55); border-radius: 16px; box-shadow: var(--shadow-sm); }
+  .hero-quote { display: flex; flex-direction: column; gap: 6px; padding: 14px 16px; background: linear-gradient(135deg, rgba(224,122,111,0.80), rgba(217,115,106,0.80)); border: 1.5px dashed rgba(255,255,255,.55); border-radius: 16px; box-shadow: var(--shadow-sm); }
   .hq-mark { font-size: 18px; line-height: 1; color: rgba(255,255,255,.9); }
   .hq-text { font-family: var(--font-display); font-size: 17px; color: #fff; line-height: 1.5; }
   .hq-author { font-size: 13px; color: rgba(255,255,255,.82); font-weight: 600; align-self: flex-end; }
   .home-hero h1 { display: none; }
   .hero-sub { display: none; }
   .hero-sun { transform-origin: 624px 74px; animation: floatY 7s ease-in-out infinite; }
-  .daily-quote { margin: 0 0 30px; padding: 16px 22px; border-left: 4px solid rgba(255,255,255,.6); border-radius: 0 16px 16px 0; background: linear-gradient(135deg, #E07A6F, #D9736A); box-shadow: var(--shadow-xs); font-family: var(--font-display); font-size: 16px; color: #fff; animation: rise .6s var(--ease) .06s both; backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); }
+  .daily-quote { margin: 0 0 30px; padding: 16px 22px; border-left: 4px solid rgba(255,255,255,.6); border-radius: 0 16px 16px 0; background: linear-gradient(135deg, rgba(224,122,111,0.80), rgba(217,115,106,0.80)); box-shadow: var(--shadow-xs); font-family: var(--font-display); font-size: 16px; color: #fff; animation: rise .6s var(--ease) .06s both; backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); }
   .daily-quote cite { display: block; margin-top: 8px; font-style: normal; font-size: 13px; color: rgba(255,255,255,.82); font-family: var(--font-ui); font-weight: 600; }
   .quote-panel { margin: 0 0 30px; padding: 16px 20px 6px; background: linear-gradient(145deg, rgba(255,255,255,0.60) 0%, rgba(251,234,225,0.40) 100%); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-sm); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); animation: rise .55s var(--ease) both; }
   .quote-head { font-family: var(--font-display); font-weight: 800; font-size: 14px; color: var(--accent-ink); margin-bottom: 10px; letter-spacing: .5px; }
@@ -455,6 +460,9 @@
     .app.nav-open .sidebar { transform: translateX(0); }
     .app.nav-open .scrim { display: block; }
     .sidebar-toggle { display: flex; }
+    .app.home-view .sidebar-toggle { display: none; }
+    .app.home-view .detail-inner { padding: calc(18px + env(safe-area-inset-top, 0px)) 20px calc(70px + env(safe-area-inset-bottom, 0px)); }
+    .app.home-view .home-topbar { display: flex; }
     .detail-inner { padding: calc(76px + env(safe-area-inset-top, 0px)) 20px calc(70px + env(safe-area-inset-bottom, 0px)); }
     .grid { grid-template-columns: 1fr; }
     .card.span2 { grid-column: auto; }
@@ -1355,8 +1363,10 @@
   }
 
   function renderDetail() {
-    if (data.selectedId === "trash") { renderTrash(); return; }
     var node = findNode(data.selectedId);
+    var isHome = data.selectedId === "home" || (node && (node.type === "home" || node.type === "category"));
+    app.classList.toggle("home-view", isHome);
+    if (data.selectedId === "trash") { renderTrash(); return; }
     if (!node) { renderWelcome(); return; }
     if (node.type === "home") { renderHome(); return; }
     if (node.type === "category") { renderHome(); return; }
@@ -1433,8 +1443,16 @@
 
     if (!weatherRequested) { weatherRequested = true; loadWeather(); }
 
+    var topBar =
+      '<div class="home-topbar">' +
+        '<button class="topbar-menu" id="homeMenuBtn" aria-label="打开导航">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>' +
+        "</button>" +
+        '<span class="topbar-title">' + esc(getAppTitle()) + "</span>" +
+      "</div>";
     var html =
       '<div class="detail-inner"><div class="home">' +
+        topBar +
         heroHTML(dateStr) +
         '<div class="stat-grid">' +
           statCard(done.length, "已读完", "📚", "himawari") +
@@ -1445,6 +1463,8 @@
         "</div>" +
       "</div></div>";
     detail.innerHTML = html;
+    var hmb = document.getElementById("homeMenuBtn");
+    if (hmb) hmb.addEventListener("click", openNav);
     var at = document.getElementById("appTitle");
     if (at) makeEditable(at, getAppTitle, setAppTitle);
     applyHeroBackground();
