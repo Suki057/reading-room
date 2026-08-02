@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v44-crayon-shinchan" />
+<meta name="build" content="v45-bg-dbltap" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -474,6 +474,11 @@
   .bg-photo { position: fixed; inset: 0; z-index: 0; background-size: cover; background-position: center; background-repeat: no-repeat; opacity: 0; transition: opacity .5s ease, background-image .4s ease; }
   .bg-tint { position: fixed; inset: 0; z-index: 0; pointer-events: none; background: transparent; }
   [data-theme="dark"] .bg-tint { background: transparent; }
+  /* 双击背景弹出的小菜单 */
+  .bg-menu { position: fixed; z-index: 56; display: none; flex-direction: column; gap: 2px; padding: 8px; min-width: 176px; background: var(--surface); border: 1px solid var(--line); border-radius: 15px; box-shadow: var(--shadow-lg); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); }
+  .bg-menu.show { display: flex; }
+  .bg-menu button { display: flex; align-items: center; gap: 9px; width: 100%; border: none; background: transparent; color: var(--ink); font-size: 14px; font-weight: 700; font-family: inherit; padding: 11px 12px; border-radius: 11px; text-align: left; cursor: pointer; transition: all .15s var(--ease); }
+  .bg-menu button:hover { background: rgba(143,207,227,0.16); color: var(--accent-ink); }
 
   /* category theme color */
   .cat-emoji { background: rgba(255,255,255,0.10); }
@@ -2144,6 +2149,45 @@
     if (!f) return;
     compressBg(f, function (out) { data.heroBgImage = out; save(); applyHeroBackground(); });
   });
+  /* ===== 双击背景：更换 / 恢复默认 ===== */
+  var bgMenu = document.getElementById("bgMenu");
+  var bgFileInput = document.getElementById("bgFile");
+  function openBgMenu(x, y) {
+    if (!bgMenu) return;
+    bgMenu.classList.add("show");
+    var w = bgMenu.offsetWidth, h = bgMenu.offsetHeight;
+    var px = Math.min(x, window.innerWidth - w - 10);
+    var py = Math.min(y, window.innerHeight - h - 10);
+    bgMenu.style.left = Math.max(10, px) + "px";
+    bgMenu.style.top = Math.max(10, py) + "px";
+  }
+  function hideBgMenu() { if (bgMenu) bgMenu.classList.remove("show"); }
+  if (bgMenu) {
+    bgMenu.addEventListener("click", function (e) {
+      var act = e.target.closest("[data-act]"); if (!act) return;
+      var a = act.getAttribute("data-act");
+      if (a === "bg-pick") {
+        hideBgMenu();
+        if (bgFileInput) { bgFileInput.value = ""; bgFileInput.click(); }
+      } else if (a === "bg-reset") {
+        data.bgImage = ""; save(); applyBackground(); hideBgMenu();
+        showToast("已恢复默认背景 ✅");
+      }
+    });
+  }
+  if (bgFileInput) bgFileInput.addEventListener("change", function (e) {
+    var f = e.target.files && e.target.files[0];
+    if (!f) return;
+    compressBg(f, function (out) { data.bgImage = out; save(); applyBackground(); showToast("背景已更新 ✅"); });
+  });
+  document.addEventListener("dblclick", function (e) {
+    if (e.target.closest(".sidebar, .card, .stat-card, .list-card, .scrim, .toast, .emoji-pop, .add-emoji-pop, .bg-menu, button, input, textarea, a, .title-screen, .book-item, .cat-list, .note-sheet, .session-block, .modal, .nav-tool, .cover, .welcome")) return;
+    e.preventDefault();
+    openBgMenu(e.clientX, e.clientY);
+  });
+  document.addEventListener("click", function (e) { if (bgMenu && !bgMenu.contains(e.target)) hideBgMenu(); });
+  document.addEventListener("scroll", hideBgMenu, true);
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") hideBgMenu(); });
   searchInput.addEventListener("input", function () { data.search = searchInput.value; renderSidebar(); });
 
   /* ===== 数据导出 / 导入（防止丢失） ===== */
