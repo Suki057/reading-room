@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v57-home-topbar" />
+<meta name="build" content="v58-sidebar-title-edit" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -118,7 +118,7 @@
   /* Sidebar - 浅灰蓝液态玻璃 */
   .sidebar { display: flex; flex-direction: column; background: linear-gradient(180deg, rgba(255,255,255,0.58) 0%, rgba(255,255,255,0.36) 55%, rgba(251,234,225,0.44) 100%); border-right: 1px solid var(--line); min-height: 0; box-shadow: var(--shadow-lg); position: relative; backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); }
   .sidebar::before { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 1px 0 rgba(255,255,255,.85); pointer-events: none; }
-  .brand { display: flex; align-items: center; gap: 12px; padding: 18px 18px 16px; border-bottom: 1px solid var(--line-soft); }
+  .brand { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 18px 18px 16px; border-bottom: 1px solid var(--line-soft); }
   .avatar { width: 56px; height: 56px; flex: none; border-radius: 18px; display: grid; place-items: center; font-size: 28px; color: #fff; overflow: hidden; background: linear-gradient(150deg, #E07A6F, #D9736A); box-shadow: var(--shadow-sm), 0 0 20px rgba(224,138,130,.32); position: relative; cursor: pointer; border: 2.5px solid var(--crayon); transition: transform .16s var(--ease); }
   .avatar:hover { transform: rotate(-4deg) scale(1.04); }
   .avatar::after { content: ""; position: absolute; inset: -3px; border-radius: inherit; border: 2px solid rgba(255,255,255,.55); }
@@ -824,6 +824,8 @@
 
   /* 角色贴纸：板块右上角空白处的动漫蜡笔小新贴纸 */
   .crayon-sticker { position: absolute; top: 6px; right: 8px; width: 52px; height: 52px; object-fit: contain; pointer-events: none; z-index: 4; transform: rotate(-7deg); filter: drop-shadow(0 3px 5px rgba(58,46,40,.22)); animation: stickerWobble 4.5s ease-in-out infinite; }
+  .stat-card .crayon-sticker { width: 38px; height: 38px; top: 5px; right: 6px; }
+  .home .crayon-sticker { opacity: .85; }
   @keyframes stickerWobble { 0%,100% { transform: rotate(-7deg) translateY(0); } 50% { transform: rotate(-3deg) translateY(-3px); } }
   @media (prefers-reduced-motion: reduce) { .crayon-sticker { animation: none; } }
 
@@ -862,10 +864,6 @@
       <div class="avatar" id="avatar" title="双击更换图标（拍照 / 选图）">
         <img id="avatarImg" alt="" hidden />
         <span id="avatarEmoji">📖</span>
-      </div>
-      <div class="brand-text">
-        <h1 class="app-title renameable" id="brandTitle" title="双击修改标题">Suki阅读室</h1>
-        <p>自律养成系</p>
       </div>
     </div>
 
@@ -1448,7 +1446,7 @@
         '<button class="topbar-menu" id="homeMenuBtn" aria-label="打开导航">' +
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>' +
         "</button>" +
-        '<span class="topbar-title">' + esc(getAppTitle()) + "</span>" +
+        '<span class="topbar-title renameable" id="homeTitle" title="双击修改标题">' + esc(getAppTitle()) + "</span>" +
       "</div>";
     var html =
       '<div class="detail-inner"><div class="home">' +
@@ -1465,6 +1463,8 @@
     detail.innerHTML = html;
     var hmb = document.getElementById("homeMenuBtn");
     if (hmb) hmb.addEventListener("click", openNav);
+    var ht = document.getElementById("homeTitle");
+    if (ht) makeEditable(ht, getAppTitle, setAppTitle);
     var at = document.getElementById("appTitle");
     if (at) makeEditable(at, getAppTitle, setAppTitle);
     applyHeroBackground();
@@ -2125,6 +2125,7 @@
   }
 
   /* sidebar events */
+  var tripleClicks = {};
   catList.addEventListener("click", function (e) {
     var cr0 = e.target.closest('.swipe-row');
     if (cr0 && cr0._suppressClick) { cr0._suppressClick = false; return; }
@@ -2137,9 +2138,24 @@
     var ac = e.target.closest('[data-act="add-category"]');
     if (ac) { e.stopPropagation(); addCategory(); return; }
     var head = e.target.closest('[data-act="toggle"]');
-    if (head && !e.target.closest('[data-act="rename"]')) {
+    if (head) {
       var n = findNode(head.getAttribute("data-node"));
-      if (n) { n.collapsed = !(n.collapsed === true || n.collapsed === undefined); save(); renderSidebar(); }
+      if (!n) return;
+      if (e.target.closest('[data-act="rename"]')) {
+        var tid = n.id;
+        if (!tripleClicks[tid]) tripleClicks[tid] = { c: 0 };
+        tripleClicks[tid].c++;
+        clearTimeout(tripleClicks[tid].t);
+        tripleClicks[tid].t = setTimeout(function () { tripleClicks[tid].c = 0; }, 600);
+        if (tripleClicks[tid].c >= 3) {
+          tripleClicks[tid].c = 0;
+          var inp = catList.querySelector('.nav-name[data-node="' + tid + '"]');
+          if (inp) { inp.readOnly = false; inp.focus(); inp.select(); }
+          return;
+        }
+      }
+      /* 单击 / 双击 → 展开子类目（不自动收起） */
+      if (n.collapsed !== false) { n.collapsed = false; save(); renderSidebar(); }
       return;
     }
     var tr = e.target.closest('[data-act="trash"]');
@@ -2205,12 +2221,6 @@
   }, { passive: false });
   catList.addEventListener("scroll", closeSwipe, { passive: true });
 
-  catList.addEventListener("dblclick", function (e) {
-    var rn = e.target.closest('[data-act="rename"]');
-    if (!rn) return;
-    e.preventDefault();
-    rn.readOnly = false; rn.focus(); rn.select();
-  });
   catList.addEventListener("focusout", function (e) {
     var rn = e.target.closest('[data-act="rename"]');
     if (!rn) return;
