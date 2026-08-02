@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v35-sidebar-typo" />
+<meta name="build" content="v36-sidebar-halfwidth" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -422,7 +422,7 @@
 
   @media (max-width: 860px) {
     .app { grid-template-columns: 1fr; }
-    .sidebar { position: fixed; z-index: 20; top: 0; left: 0; bottom: 0; width: 300px; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); transform: translateX(-100%); transition: transform .32s var(--ease); box-shadow: var(--shadow-lg); }
+    .sidebar { position: fixed; z-index: 20; top: 0; left: 0; bottom: 0; width: 50vw; max-width: 340px; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); transform: translateX(-100%); transition: transform .32s var(--ease); box-shadow: var(--shadow-lg); }
     .app.nav-open .sidebar { transform: translateX(0); }
     .app.nav-open .scrim { display: block; }
     .sidebar-toggle { display: flex; }
@@ -749,6 +749,19 @@
       linear-gradient(118deg, rgba(138,124,255,.85) 0%, rgba(160,150,255,.55) 6%, rgba(255,255,255,0) 20%),
       linear-gradient(28deg,  rgba(255,170,90,.85)  0%, rgba(255,205,140,.50) 6%, rgba(255,255,255,0) 20%),
       linear-gradient(180deg, rgba(255,255,255,.36) 0%, rgba(255,255,255,.14) 50%, rgba(255,255,255,.08) 100%);
+  }
+
+  /* 手机端：侧栏改为半屏后，内部横向间距同步收小，边框/留白更均衡 */
+  @media (max-width: 860px) {
+    .brand { padding: 14px 14px 12px; }
+    .search { padding: 12px 12px 6px; }
+    .sidebar-actions { padding: 12px 12px 4px; }
+    .nav-section { padding: 12px 14px 8px; }
+    .nav-home { padding: 8px 11px; }
+    .cat-head { padding: 8px 10px; }
+    .cat-list { padding: 8px 10px 16px; }
+    .data-actions { padding: 12px 14px 6px; }
+    .nav-trash { padding: 10px 10px; }
   }
 
 </style>
