@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v40-title-screen-text" />
+<meta name="build" content="v41-title-emoji-changeable" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -190,6 +190,7 @@
   .book-item.is-active { background: var(--cat-soft, var(--accent-soft)); color: var(--cat, var(--accent-ink)); font-weight: 700; }
   .book-item.is-active::before { background: var(--cat, var(--accent)); }
   .entry-name { color: inherit; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 12.5px; }
+  .book-emoji { font-size: 14px; line-height: 1; flex: none; filter: saturate(1.05); }
   .book-item.is-done .mini-bar i { background: var(--amber); box-shadow: 0 0 8px rgba(253,240,212,.45); }
   .book-item.is-done::before { background: var(--amber); }
   .mini-bar { width: 38px; height: 5px; flex: none; border-radius: 5px; background: var(--line); overflow: hidden; }
@@ -215,7 +216,8 @@
 
   /* 输入标题页（添加子类目第一步） */
   .title-screen { max-width: 480px; margin: 6vh auto 0; padding: 28px 26px 30px; background: var(--surface); border: 1px solid var(--line-soft); border-radius: 22px; text-align: center; box-shadow: var(--shadow-sm); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); }
-  .title-mark { font-size: 40px; margin-bottom: 8px; }
+  .title-mark { font-size: 40px; margin-bottom: 8px; cursor: pointer; user-select: none; transition: transform .15s var(--ease); }
+  .title-mark:hover { transform: scale(1.08); }
   .title-screen h2 { font-family: var(--font-display); font-size: 21px; color: var(--ink); margin: 0 0 6px; }
   .title-sub { font-size: 13px; color: var(--muted); margin: 0 0 20px; }
   .newtitle-input { width: 100%; box-sizing: border-box; padding: 14px 16px; font-size: 16px; font-weight: 600; font-family: inherit; color: var(--ink); background: var(--surface-2); border: 1.5px solid var(--line); border-radius: 14px; outline: none; transition: border-color .18s var(--ease), box-shadow .18s var(--ease); -webkit-text-size-adjust: 100%; }
@@ -1175,6 +1177,7 @@
   var detail = document.getElementById("detail");
   var searchInput = document.getElementById("search");
   var addTitleReturn = "home";
+  var addItemEmoji = "📚";
 
   /* ---- cover fetching (Open Library real book covers) ---- */
   function fetchCovers(title) {
@@ -1256,6 +1259,7 @@
           var ia = b.id === data.selectedId ? " is-active" : "";
           var idn = isDone(b) ? " is-done" : "";
           html += '<div class="book-item' + ia + idn + '" data-act="select" data-node="' + b.id + '">';
+          html += '<span class="book-emoji">' + esc(b.emoji || "📚") + "</span>";
           html += '<span class="renameable nav-wrap"><input class="entry-name nav-name" data-act="rename" data-node="' + b.id + '" value="' + esc(b.name) + '" readonly /><em class="rename-hint">✏️</em></span>';
           html += '<span class="mini-bar"><i style="width:' + progressOf(b) + '%"></i></span>';
           html += "</div>";
@@ -1776,11 +1780,28 @@
       var btn = e.target.closest("[data-e]");
       if (!btn) return;
       var id = emojiPop.getAttribute("data-for");
+      if (id === "__add__") {
+        addItemEmoji = btn.getAttribute("data-e");
+        var tm = document.getElementById("titleMark");
+        if (tm) tm.textContent = addItemEmoji;
+        hideEmojiPop();
+        return;
+      }
       var n = findNode(id);
       if (n) { n.emoji = btn.getAttribute("data-e"); save(); renderSidebar(); }
       hideEmojiPop();
     });
     return emojiPop;
+  }
+  function showAddEmojiPop(anchor) {
+    var pop = ensureEmojiPop();
+    pop.setAttribute("data-for", "__add__");
+    pop.classList.add("open");
+    var r = anchor.getBoundingClientRect();
+    pop.style.top = (r.bottom + 6) + "px";
+    var left = r.left;
+    if (left + pop.offsetWidth > window.innerWidth - 8) left = window.innerWidth - pop.offsetWidth - 8;
+    pop.style.left = left + "px";
   }
   function showEmojiPop(id, anchor) {
     var pop = ensureEmojiPop();
@@ -1824,8 +1845,8 @@
           "<span></span>" +
         "</div>" +
         '<div class="title-screen">' +
-          '<div class="title-mark">✍️</div>' +
-          "<h2>书籍名称📚</h2>" +
+          '<div class="title-mark" id="titleMark" title="双击更换图标">' + addItemEmoji + "</div>" +
+          "<h2>书籍名称</h2>" +
           '<input id="newTitleInput" class="newtitle-input" type="text" placeholder="例如：第一章 / 第 1 周 / 概念笔记" autocomplete="off" />' +
           '<div class="title-actions">' +
             '<button class="btn btn-ghost" id="titleCancelBtn" type="button">取消</button>' +
@@ -1836,6 +1857,8 @@
     detail.innerHTML = html;
     var inp = document.getElementById("newTitleInput");
     if (inp) inp.focus();
+    var tm = document.getElementById("titleMark");
+    if (tm) tm.addEventListener("dblclick", function () { showAddEmojiPop(tm); });
     var cancel = function () {
       data.selectedId = addTitleReturn; renderSidebar(); renderDetail();
     };
@@ -1852,6 +1875,7 @@
     var inp = document.getElementById("newTitleInput");
     var name = (inp ? inp.value : "").trim() || "新子条目";
     var b = newItem(name);
+    b.emoji = addItemEmoji;
     c.children.push(b); c.collapsed = false; data.selectedId = b.id;
     save(); renderSidebar();
     renderItem(b); closeNav();
