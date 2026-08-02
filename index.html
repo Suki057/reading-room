@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v38-move-addbook-above-trash" />
+<meta name="build" content="v39-additem-title-screen" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -212,6 +212,19 @@
   .icon-btn.danger:hover { border-color: var(--coral); color: var(--coral); }
   .detail-cat { flex: 1; font-size: 13px; color: var(--muted); font-weight: 600; }
   .detail-cat b { color: var(--cat, var(--accent-ink)); font-weight: 800; }
+
+  /* 输入标题页（添加子类目第一步） */
+  .title-screen { max-width: 480px; margin: 6vh auto 0; padding: 28px 26px 30px; background: var(--surface); border: 1px solid var(--line-soft); border-radius: 22px; text-align: center; box-shadow: var(--shadow-sm); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); }
+  .title-mark { font-size: 40px; margin-bottom: 8px; }
+  .title-screen h2 { font-family: var(--font-display); font-size: 21px; color: var(--ink); margin: 0 0 6px; }
+  .title-sub { font-size: 13px; color: var(--muted); margin: 0 0 20px; }
+  .newtitle-input { width: 100%; box-sizing: border-box; padding: 14px 16px; font-size: 16px; font-weight: 600; font-family: inherit; color: var(--ink); background: var(--surface-2); border: 1.5px solid var(--line); border-radius: 14px; outline: none; transition: border-color .18s var(--ease), box-shadow .18s var(--ease); -webkit-text-size-adjust: 100%; }
+  .newtitle-input::placeholder { color: var(--muted); font-weight: 500; }
+  .newtitle-input:focus { border-color: var(--cat, var(--accent)); box-shadow: 0 0 0 4px var(--cat-soft, var(--accent-soft)); }
+  .title-actions { display: flex; gap: 12px; margin-top: 20px; }
+  .title-actions .btn { flex: 1; }
+  .btn-ghost { background: var(--surface-2); color: var(--ink-soft); border: 1px solid var(--line); }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent-ink); background: rgba(143,207,227,0.12); }
 
   .detail-head { margin-bottom: 28px; }
   .title-input { width: 100%; border: none; background: transparent; font-family: var(--font-display); font-weight: 700; font-size: clamp(28px, 4vw, 40px); line-height: 1.12; color: var(--ink); padding: 0; margin: 0; border-bottom: 2px solid transparent; transition: border-color .2s var(--ease); -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
@@ -1161,6 +1174,7 @@
   var catList = document.getElementById("catList");
   var detail = document.getElementById("detail");
   var searchInput = document.getElementById("search");
+  var addTitleReturn = "home";
 
   /* ---- cover fetching (Open Library real book covers) ---- */
   function fetchCovers(title) {
@@ -1791,14 +1805,57 @@
     var inp = catList.querySelector('.nav-name[data-node="' + c.id + '"]');
     if (inp) { inp.readOnly = false; inp.focus(); inp.select(); }
   }
-  function addItem(catId) {
+  /* 添加子类目：先进入「输入标题」页面，确认后再进入子类目详情 */
+  function startAddItem(catId) {
     var c = findNode(catId);
     if (!c || c.type !== "category") return;
-    var b = newItem("新子条目");
+    addTitleReturn = data.selectedId || "home";
+    closeNav();
+    renderTitleScreen(catId);
+  }
+  function renderTitleScreen(catId) {
+    var c = findNode(catId);
+    var cc = c ? catColor(c) : "#8FCFE3";
+    var html =
+      '<div class="detail-inner" style="--cat:' + cc + ';--cat-soft:' + softColor(cc) + '">' +
+        '<div class="detail-top">' +
+          '<button class="icon-btn" id="titleCancel">‹ 返回</button>' +
+          '<div class="detail-cat">新建子类目 · 分类：<b>' + esc(c ? c.name : "—") + "</b></div>" +
+          "<span></span>" +
+        "</div>" +
+        '<div class="title-screen">' +
+          '<div class="title-mark">✍️</div>' +
+          "<h2>给子类目起个标题</h2>" +
+          '<p class="title-sub">输入标题后确认，立即进入该子类目页面</p>' +
+          '<input id="newTitleInput" class="newtitle-input" type="text" placeholder="例如：第一章 / 第 1 周 / 概念笔记" autocomplete="off" />' +
+          '<div class="title-actions">' +
+            '<button class="btn btn-ghost" id="titleCancelBtn" type="button">取消</button>' +
+            '<button class="btn btn-primary" id="titleConfirm" type="button">确认并进入 ›</button>' +
+          "</div>" +
+        "</div>" +
+      "</div>";
+    detail.innerHTML = html;
+    var inp = document.getElementById("newTitleInput");
+    if (inp) inp.focus();
+    var cancel = function () {
+      data.selectedId = addTitleReturn; renderSidebar(); renderDetail();
+    };
+    document.getElementById("titleCancel").addEventListener("click", cancel);
+    document.getElementById("titleCancelBtn").addEventListener("click", cancel);
+    document.getElementById("titleConfirm").addEventListener("click", function () { confirmAddItem(catId); });
+    if (inp) inp.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") { e.preventDefault(); confirmAddItem(catId); }
+    });
+  }
+  function confirmAddItem(catId) {
+    var c = findNode(catId);
+    if (!c || c.type !== "category") { renderDetail(); return; }
+    var inp = document.getElementById("newTitleInput");
+    var name = (inp ? inp.value : "").trim() || "新子条目";
+    var b = newItem(name);
     c.children.push(b); c.collapsed = false; data.selectedId = b.id;
-    save(); renderSidebar(); renderItem(b); closeNav();
-    var inp = catList.querySelector('.nav-name[data-node="' + b.id + '"]');
-    if (inp) { inp.readOnly = false; inp.focus(); inp.select(); }
+    save(); renderSidebar();
+    renderItem(b); closeNav();
   }
 
   /* soft delete + undo + recycle bin */
@@ -1939,7 +1996,7 @@
     var del = e.target.closest('[data-act="del-cat"]');
     if (del) { e.stopPropagation(); var dn = findNode(del.getAttribute("data-node")); if (dn) softDelete(dn); return; }
     var add = e.target.closest('[data-act="add-item"]');
-    if (add) { e.stopPropagation(); addItem(add.getAttribute("data-node")); return; }
+    if (add) { e.stopPropagation(); startAddItem(add.getAttribute("data-node")); return; }
     var ac = e.target.closest('[data-act="add-category"]');
     if (ac) { e.stopPropagation(); addCategory(); return; }
     var head = e.target.closest('[data-act="toggle"]');
