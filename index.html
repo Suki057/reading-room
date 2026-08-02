@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v62-log-layout" />
+<meta name="build" content="v63-note-row-delete" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -312,6 +312,10 @@
   .session-field:last-child { margin-bottom: 0; }
   .session-label { flex: none; width: 78px; font-size: 13px; font-weight: 700; color: var(--ink-soft); }
   .session-field input { flex: 1; min-width: 0; }
+  .session-field input.underline-input { flex: none; width: 92px; text-align: center; border: none; border-bottom: 1.5px solid var(--accent); border-radius: 0; background: transparent; box-shadow: none; font-weight: 700; color: var(--ink); padding: 4px 6px; }
+  .session-field input.underline-input:focus { outline: none; border-bottom-color: var(--accent-ink); box-shadow: none; background: transparent; }
+  .session-field input.underline-input::-webkit-outer-spin-button, .session-field input.underline-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .session-suffix { flex: none; font-size: 14px; font-weight: 600; color: var(--ink-soft); }
   .session-field textarea { width: 100%; min-height: 84px; }
   .btn.sm { padding: 6px 11px; font-size: 12.5px; border-radius: 11px; }
   #addLog { width: auto; align-self: flex-start; }
@@ -349,6 +353,8 @@
   .btn-add-row:hover { background: rgba(255,255,255,0.55); border-color: var(--accent); color: var(--accent-ink); }
   .note-del-row { width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; border: 1px solid transparent; background: transparent; color: var(--muted); font-size: 13px; transition: all .15s var(--ease); }
   .note-del-row:hover { background: var(--coral-soft); color: var(--coral); border-color: var(--coral); }
+  .note-row .note-del-row { position: absolute; top: 6px; right: 8px; z-index: 3; opacity: .5; }
+  .note-row .note-del-row:hover { opacity: 1; }
   .note-row[data-color="red"] .note-col textarea { color: #B23326; }
   .note-row[data-color="blue"] .note-col textarea { color: #3f8ba6; }
   .note-row[data-color="green"] .note-col textarea { color: #A67C3D; }
@@ -1719,6 +1725,7 @@
     var colors = [{k:"ink",l:"黑"},{k:"red",l:"红"},{k:"blue",l:"蓝"},{k:"green",l:"绿"},{k:"purple",l:"紫"}];
     return (rows || []).map(function (row, ri) {
       return '<div class="note-row" data-log-idx="' + logIdx + '" data-row-idx="' + ri + '" data-color="' + esc(row.color || "ink") + '">' +
+        '<button class="note-del-row" type="button" data-del-row="' + logIdx + '" data-row-idx="' + ri + '" title="删除此行（进入回收站）">✕</button>' +
         '<div class="note-col note-col-left">' +
           '<textarea class="note-left" data-log-idx="' + logIdx + '" data-row-idx="' + ri + '" placeholder="要点 / 方法 / 概念">' + esc(row.left || "") + '</textarea>' +
         '</div>' +
@@ -1756,7 +1763,7 @@
         '</div>' +
         '<div class="log-row session-row">' +
           '<div class="session-field"><div class="session-label">日期</div><input type="date" class="log-date" value="' + esc(r.date || "") + '" /></div>' +
-          '<div class="session-field"><div class="session-label">观看至__页</div><input type="number" class="log-page" min="0" placeholder="看到第几页" value="' + (r.page != null ? r.page : "") + '" /></div>' +
+          '<div class="session-field"><div class="session-label">观看至</div><input type="number" class="log-page underline-input" min="0" placeholder="____" value="' + (r.page != null ? r.page : "") + '" /><span class="session-suffix">页</span></div>' +
         '</div>' +
         noteSheetHTML(r, i) +
       '</div>';
@@ -1818,6 +1825,11 @@
       var right = rowEl.querySelector(".note-right");
       if (left) left.addEventListener("input", function () { row.left = left.value; save(); });
       if (right) right.addEventListener("input", function () { row.right = right.value; save(); });
+      var delRow = rowEl.querySelector(".note-del-row");
+      if (delRow) delRow.addEventListener("click", function (ev) {
+        ev.stopPropagation();
+        softDeleteNoteRow(b, parseInt(rowEl.getAttribute("data-log-idx"), 10), ri);
+      });
     });
     var addRow = block.querySelector(".btn-add-row");
     if (addRow) addRow.addEventListener("click", function () {
@@ -2032,10 +2044,41 @@
   function undoDelete() {
     if (!data.trash || !data.trash.length) return;
     var entry = data.trash[data.trash.length - 1];
-    restoreEntry(entry);
+    if (entry.kind === "note-row") restoreNoteRow(entry); else restoreEntry(entry);
     data.trash.pop();
     save(); renderSidebar(); renderDetail();
     hideToast();
+  }
+  /* 删除读书笔记里的某一行 → 进入回收站 */
+  function noteRowPreview(row) {
+    var t = (row.left || row.right || "").trim().replace(/\s+/g, " ");
+    return t ? (t.length > 22 ? t.slice(0, 22) + "…" : t) : "空白笔记行";
+  }
+  function softDeleteNoteRow(b, logIdx, ri) {
+    var log = (b.readLog || [])[logIdx];
+    if (!log || !log.notes || !log.notes.rows) return;
+    var row = log.notes.rows[ri];
+    if (!row) return;
+    var entry = {
+      kind: "note-row",
+      node: { type: "note", name: noteRowPreview(row), payload: row },
+      ctx: { bookId: b.id, logIdx: logIdx, rowIdx: ri }
+    };
+    data.trash = data.trash || [];
+    data.trash.push(entry);
+    if (data.trash.length > 60) data.trash.shift();
+    log.notes.rows.splice(ri, 1);
+    save(); renderItem(b); renderSidebar();
+    showUndoToast(entry.node);
+  }
+  function restoreNoteRow(entry) {
+    if (!entry || entry.kind !== "note-row") return;
+    var b = findNode(entry.ctx.bookId);
+    if (!b || !b.readLog) return;
+    var log = b.readLog[entry.ctx.logIdx];
+    if (!log || !log.notes) return;
+    log.notes.rows = log.notes.rows || [];
+    log.notes.rows.splice(Math.min(entry.ctx.rowIdx, log.notes.rows.length), 0, entry.node.payload);
   }
   function parentNameOf(e) {
     if (e.where && e.where.kind === "child") {
@@ -2054,6 +2097,17 @@
       html += '<div class="trash-actions"><button class="btn danger-outline" id="emptyTrash">清空回收站</button></div>';
       html += '<section class="list-card"><h2>已删除的内容</h2>';
       list.forEach(function (e, i) {
+        if (e.kind === "note-row") {
+          var rn = e.node || {};
+          html += '<div class="list-row trash-row">' +
+            '<span class="lr-icon">📝</span>' +
+            '<span class="lr-name">' + esc(rn.name || "笔记行") + '</span>' +
+            '<span class="lr-meta">读书笔记 · 一行</span>' +
+            '<button class="icon-btn small" data-restore="' + i + '">恢复</button>' +
+            '<button class="icon-btn small" data-purge="' + i + '" title="永久删除">✕</button>' +
+          '</div>';
+          return;
+        }
         var n = e.node;
         var icon = n.type === "category" ? (n.emoji || "📚") : "📄";
         var sub = n.type === "category" ? ("分类 · " + ((n.children && n.children.length) || 0) + " 个子条目") : ("来自：" + parentNameOf(e));
@@ -2084,9 +2138,15 @@
         var i = parseInt(btn.getAttribute("data-restore"), 10);
         var entry = data.trash[i];
         if (!entry) return;
-        restoreEntry(entry);
+        if (entry.kind === "note-row") restoreNoteRow(entry); else restoreEntry(entry);
         data.trash.splice(i, 1);
         save(); renderSidebar(); renderDetail();
+      });
+    });
+    detail.querySelectorAll("[data-purge]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var i = parseInt(btn.getAttribute("data-purge"), 10);
+        if (i >= 0 && i < data.trash.length) { data.trash.splice(i, 1); save(); renderSidebar(); renderDetail(); }
       });
     });
   }
