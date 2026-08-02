@@ -1,12 +1,18 @@
 // 缓存版本号：每次发布新版本时递增，可自动清理旧缓存并强制更新页面
-const CACHE = 'suki-reading-v38';
+const CACHE = 'suki-reading-v39';
 const ASSETS = [
   './',
   './index.html',
   './bg-liquid-glass.jpg',
   './manifest.webmanifest',
   './icon-192.png',
-  './icon-512.png'
+  './icon-512.png',
+  './assets/stickers/shin_head_0_0.png','./assets/stickers/shin_head_0_1.png','./assets/stickers/shin_head_0_2.png','./assets/stickers/shin_head_0_3.png',
+  './assets/stickers/shin_head_1_0.png','./assets/stickers/shin_head_1_1.png','./assets/stickers/shin_head_1_2.png','./assets/stickers/shin_head_1_3.png',
+  './assets/stickers/shin_head_2_0.png','./assets/stickers/shin_head_2_1.png','./assets/stickers/shin_head_2_2.png','./assets/stickers/shin_head_2_3.png',
+  './assets/stickers/shin_head_3_0.png','./assets/stickers/shin_head_3_1.png','./assets/stickers/shin_head_3_2.png','./assets/stickers/shin_head_3_3.png',
+  './assets/stickers/shin_life_0_0.png','./assets/stickers/shin_life_0_1.png','./assets/stickers/shin_life_1_0.png','./assets/stickers/shin_life_1_1.png',
+  './assets/stickers/shin_life_2_0.png','./assets/stickers/shin_life_2_1.png','./assets/stickers/shin_life_3_0.png','./assets/stickers/shin_life_3_1.png'
 ];
 
 self.addEventListener('install', function (e) {
