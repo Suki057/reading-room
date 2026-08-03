@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v77-perf-snappy" />
+<meta name="build" content="v78-search-expand" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -216,6 +216,28 @@
   .swipe-row.swiping .cat-card { transition: none; }
 
   .empty-list { padding: 16px 14px; text-align: center; color: var(--muted); font-size: 13px; }
+
+  /* 搜索结果：总类目 + 展开的子类目 */
+  .search-cat { margin-bottom: 14px; }
+  .search-cat-head { display: flex; align-items: center; gap: 9px; padding: 9px 11px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); color: var(--ink); cursor: pointer; transition: transform, background-color, border-color, box-shadow, opacity .16s var(--ease); }
+  .search-cat-head:hover { background: var(--surface-2); border-color: var(--accent); }
+  .search-cat-head.is-active { background: var(--cat-soft, var(--accent-soft)); border-color: rgba(224,138,130,0.45); color: var(--cat, var(--accent-ink)); }
+  .search-cat-icon { width: 28px; height: 28px; object-fit: contain; flex: none; filter: drop-shadow(0 2px 3px rgba(0,0,0,.06)); }
+  .search-cat-name { flex: 1; min-width: 0; font-size: 13.5px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .search-cat-count { font-size: 10px; font-weight: 700; color: var(--muted); background: rgba(255,255,255,0.45); border: 1px solid var(--line-soft); padding: 2px 8px; border-radius: 20px; flex: none; }
+  .search-cat-head.is-active .search-cat-count { color: var(--cat, var(--accent-ink)); }
+  .search-children { padding: 6px 0 4px 8px; display: flex; flex-direction: column; gap: 4px; }
+  .search-child { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 12px; background: transparent; border: 1px solid transparent; color: var(--ink-soft); cursor: pointer; transition: transform, background-color, border-color, box-shadow, opacity .14s var(--ease); }
+  .search-child:hover { background: var(--surface); border-color: var(--line); color: var(--ink); }
+  .search-child.is-active { background: var(--cat-soft, var(--accent-soft)); color: var(--cat, var(--accent-ink)); }
+  .search-child-cover { width: 34px; height: 46px; flex: none; border-radius: 6px; overflow: hidden; background: var(--surface-2); display: grid; place-items: center; box-shadow: 0 2px 5px rgba(0,0,0,.05); }
+  .search-child-cover img { width: 100%; height: 100%; object-fit: cover; }
+  .search-child-ph { font-size: 18px; }
+  .search-child-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+  .search-child-name { font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .search-child-progress { height: 5px; border-radius: 5px; background: var(--line); overflow: hidden; }
+  .search-child-progress i { display: block; height: 100%; background: var(--cat, var(--accent)); border-radius: 5px; transition: width .3s var(--ease); }
+  .search-mark { background: rgba(255,235,80,0.55); color: var(--ink); border-radius: 3px; padding: 0 1px; }
 
   /* emoji popover */
   .emoji-pop { position: fixed; z-index: 50; display: none; grid-template-columns: repeat(8, 1fr); gap: 4px; width: 296px; padding: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow-lg); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); }
@@ -1402,42 +1424,87 @@
     });
   }
 
+  function highlightMatch(text, q) {
+    if (!q || !text) return esc(text || "");
+    var re = new RegExp("(" + q.replace(/[.*+?^${}()|[\]\\\\]/g, '\\$&') + ")", "gi");
+    return text.split(re).map(function (part, i) {
+      return (i % 2 === 1) ? '<mark class="search-mark">' + esc(part) + '</mark>' : esc(part);
+    }).join("");
+  }
+
   function renderSidebar() {
     var q = (data.search || "").trim().toLowerCase();
     var html = "";
-    data.nodes.forEach(function (n) {
-      if (n.type === "home") {
-        var ha = n.id === data.selectedId ? " is-active" : "";
-        html += '<div class="nav-home' + ha + '" data-act="select" data-node="' + n.id + '">';
-        html += '<span style="font-size:18px">' + esc(n.emoji || "🏠") + '</span>';
-        html += '<span class="renameable nav-wrap"><input class="nav-name" data-act="rename" data-node="' + n.id + '" value="' + esc(n.name) + '" readonly /><em class="rename-hint">✏️</em></span>';
-        html += "</div>";
-        return;
-      }
-      if (n.type === "category") {
-        var matchesChild = n.children && n.children.some(function (b) { return !q || b.name.toLowerCase().indexOf(q) > -1; });
-        if (q && !matchesChild && n.name.toLowerCase().indexOf(q) === -1) return;
-        var isActive = n.id === data.selectedId;
-        if (!isActive && n.children) isActive = n.children.some(function (b) { return b.id === data.selectedId; });
-        var activeClass = isActive ? " is-active" : "";
+    if (!q) {
+      /* 默认侧栏：首页 + 总类目卡片 + 工具 */
+      data.nodes.forEach(function (n) {
+        if (n.type === "home") {
+          var ha = n.id === data.selectedId ? " is-active" : "";
+          html += '<div class="nav-home' + ha + '" data-act="select" data-node="' + n.id + '">';
+          html += '<span style="font-size:18px">' + esc(n.emoji || "🏠") + '</span>';
+          html += '<span class="renameable nav-wrap"><input class="nav-name" data-act="rename" data-node="' + n.id + '" value="' + esc(n.name) + '" readonly /><em class="rename-hint">✏️</em></span>';
+          html += "</div>";
+          return;
+        }
+        if (n.type === "category") {
+          var isActive = n.id === data.selectedId;
+          if (!isActive && n.children) isActive = n.children.some(function (b) { return b.id === data.selectedId; });
+          var activeClass = isActive ? " is-active" : "";
+          var iconSrc = esc(n.icon || CATEGORY_ICONS[0]);
+          html += '<div class="cat-card-row swipe-row">';
+          html += '<div class="cat-card' + activeClass + '" data-act="select" data-node="' + n.id + '" style="--cat:' + catColor(n) + ';--cat-soft:' + softColor(catColor(n)) + '">';
+          html += '<img class="cat-card-icon" src="' + iconSrc + '" alt="" aria-hidden="true" />';
+          html += '<span class="renameable nav-wrap"><input class="cat-card-name nav-name" data-act="rename" data-node="' + n.id + '" value="' + esc(n.name) + '" readonly /><em class="rename-hint">✏️</em></span>';
+          html += '<span class="cat-card-count">' + n.children.length + " 本</span>";
+          html += '</div><button class="row-del" data-act="del-cat" data-node="' + n.id + '">删除</button></div>';
+        }
+      });
+      html += '<div class="add-book-row"><button class="btn btn-primary" data-act="add-category">＋ 添加书籍📚</button></div>';
+      html += '<div class="nav-trash' + (data.selectedId === "trash" ? " is-active" : "") + '" data-act="trash" data-node="trash">' +
+        '<span class="trash-ico">🗑️</span><span>回收站</span>' +
+        (data.trash && data.trash.length ? '<span class="trash-badge">' + data.trash.length + "</span>" : "") +
+        "</div>";
+      html += '<div class="nav-tool" data-act="export"><span class="nt-ic">⬇</span><span>导出备份</span></div>';
+      html += '<div class="nav-tool" data-act="import"><span class="nt-ic">⬆</span><span>导入恢复</span></div>';
+      html += '<div class="nav-tool" data-act="copy"><span class="nt-ic">🔗</span><span>复制地址</span></div>';
+    } else {
+      /* 搜索模式：显示总类目 + 展开的匹配子类目 */
+      var hasResult = false;
+      data.nodes.forEach(function (n) {
+        if (n.type !== "category") return;
+        var catMatch = n.name.toLowerCase().indexOf(q) > -1;
+        var matched = (n.children || []).filter(function (b) { return b.name.toLowerCase().indexOf(q) > -1; });
+        if (!catMatch && !matched.length) return;
+        hasResult = true;
         var iconSrc = esc(n.icon || CATEGORY_ICONS[0]);
-        html += '<div class="cat-card-row swipe-row">';
-        html += '<div class="cat-card' + activeClass + '" data-act="select" data-node="' + n.id + '" style="--cat:' + catColor(n) + ';--cat-soft:' + softColor(catColor(n)) + '">';
-        html += '<img class="cat-card-icon" src="' + iconSrc + '" alt="" aria-hidden="true" />';
-        html += '<span class="renameable nav-wrap"><input class="cat-card-name nav-name" data-act="rename" data-node="' + n.id + '" value="' + esc(n.name) + '" readonly /><em class="rename-hint">✏️</em></span>';
-        html += '<span class="cat-card-count">' + n.children.length + " 本</span>";
-        html += '</div><button class="row-del" data-act="del-cat" data-node="' + n.id + '">删除</button></div>';
-      }
-    });
-    html += '<div class="add-book-row"><button class="btn btn-primary" data-act="add-category">＋ 添加书籍📚</button></div>';
-    html += '<div class="nav-trash' + (data.selectedId === "trash" ? " is-active" : "") + '" data-act="trash" data-node="trash">' +
-      '<span class="trash-ico">🗑️</span><span>回收站</span>' +
-      (data.trash && data.trash.length ? '<span class="trash-badge">' + data.trash.length + "</span>" : "") +
-      "</div>";
-    html += '<div class="nav-tool" data-act="export"><span class="nt-ic">⬇</span><span>导出备份</span></div>';
-    html += '<div class="nav-tool" data-act="import"><span class="nt-ic">⬆</span><span>导入恢复</span></div>';
-    html += '<div class="nav-tool" data-act="copy"><span class="nt-ic">🔗</span><span>复制地址</span></div>';
-    if (!html) html = '<div class="empty-list">' + (q ? "未找到匹配" : "暂无内容") + "</div>";
+        var catStyle = ' style="--cat:' + catColor(n) + ';--cat-soft:' + softColor(catColor(n)) + '"';
+        html += '<div class="search-cat">';
+        html += '<div class="search-cat-head' + (n.id === data.selectedId ? " is-active" : "") + '" data-act="select" data-node="' + n.id + '"' + catStyle + '>';
+        html += '<img class="search-cat-icon" src="' + iconSrc + '" alt="" aria-hidden="true" />';
+        html += '<span class="search-cat-name">' + highlightMatch(n.name, q) + '</span>';
+        html += '<span class="search-cat-count">' + n.children.length + ' 本</span>';
+        html += '</div>';
+        if (matched.length) {
+          html += '<div class="search-children">';
+          matched.forEach(function (b) {
+            var pct = progressOf(b);
+            var cover = b.cover
+              ? '<img src="' + esc(b.cover) + '" alt="" />'
+              : '<span class="search-child-ph">' + esc(defaultEmoji(b.name)) + '</span>';
+            html += '<div class="search-child' + (b.id === data.selectedId ? " is-active" : "") + '" data-act="select" data-node="' + b.id + '">';
+            html += '<div class="search-child-cover">' + cover + '</div>';
+            html += '<div class="search-child-info">';
+            html += '<div class="search-child-name">' + highlightMatch(b.name, q) + '</div>';
+            html += '<div class="search-child-progress"><i style="width:' + pct + '%"></i></div>';
+            html += '</div></div>';
+          });
+          html += '</div>';
+        }
+        html += '</div>';
+      });
+      if (!hasResult) html = '<div class="empty-list">未找到「' + esc(q) + '」相关书籍</div>';
+    }
+    if (!html) html = '<div class="empty-list">暂无内容</div>';
     catList.innerHTML = html;
   }
   function setSidebarActive(id) {
