@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v67-cat-boxes" />
+<meta name="build" content="v68-nav-fix" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -1416,7 +1416,24 @@
   var lastRenderedId = null;
   var isBackNav = false;
   function goBack() {
-    if (navStack.length === 0) return;            // 已在根界面，无需返回
+    // 书籍/子类目：优先返回其所属「分类页」——更符合「返回上一步」的层级直觉
+    var node = findNode(data.selectedId);
+    if (node && node.type !== "category" && node.type !== "home") {
+      var p = findParent(data.selectedId);
+      if (p) {
+        data.selectedId = p.id; isBackNav = true;
+        save(); setSidebarActive(p.id); renderSidebar(); renderDetail();
+        if (window.matchMedia("(max-width: 860px)").matches) closeNav();
+        try { detail.style.transition = ""; detail.style.transform = ""; } catch (e) {}
+        return;
+      }
+    }
+    if (navStack.length === 0) {
+      data.selectedId = "home"; isBackNav = true;
+      save(); setSidebarActive("home"); renderSidebar(); renderDetail();
+      try { detail.style.transition = ""; detail.style.transform = ""; } catch (e) {}
+      return;
+    }
     var prev = navStack.pop();
     isBackNav = true;
     data.selectedId = prev;
@@ -2706,7 +2723,8 @@ if ('serviceWorker' in navigator) {
     if (e.touches.length !== 1) return;
     var t = e.touches[0];
     sx = t.clientX; sy = t.clientY;
-    armed = sx < 28 && navStack.length > 0;   // 仅从左侧边缘起滑，且存在上一级界面时才触发
+    var edge = Math.max(36, Math.round(window.innerWidth * 0.16)); // 左边缘约 16% 屏宽起滑，避开 iOS 系统边缘手势
+    armed = sx < edge && data.selectedId !== "home";   // 只要不在首页，左边缘右滑即返回上一级
     swiping = false; decided = false;
     detail.style.transition = 'none';
   }, { passive: true });
