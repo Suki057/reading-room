@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v68-nav-fix" />
+<meta name="build" content="v69-cat-upload-swipe" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -451,13 +451,19 @@
   .shelf-back:hover { border-color: var(--accent); color: var(--accent-ink); background: rgba(224,138,130,.14); }
   .shelf-head h2 { margin: 0; font-family: var(--font-display); font-size: 22px; font-weight: 800; color: var(--ink); }
   .shelf-count { font-size: 13px; color: var(--muted); font-weight: 600; margin-top: 2px; }
-  .shelf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(98px, 1fr)); gap: 20px 14px; }
-  .shelf-card { display: flex; flex-direction: column; gap: 9px; cursor: pointer; transition: transform .22s var(--ease); }
+  .shelf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 26px 18px; }
+  .shelf-card { display: flex; flex-direction: column; gap: 12px; cursor: pointer; transition: transform .22s var(--ease); }
   .shelf-card:hover { transform: translateY(-5px); }
   .shelf-cover { position: relative; width: 100%; aspect-ratio: 3 / 4; border-radius: 15px; overflow: hidden; background: linear-gradient(145deg, rgba(224,138,130,.22) 0%, rgba(255,228,205,.34) 100%); box-shadow: var(--shadow-sm); display: grid; place-items: center; }
   .shelf-cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   .shelf-cover .shelf-ph { font-size: 30px; line-height: 1; }
-  .shelf-name { font-size: 12.5px; line-height: 1.4; color: var(--ink-soft); font-weight: 600; text-align: center; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .shelf-name { font-size: 15px; line-height: 1.55; letter-spacing: .3px; color: var(--ink); font-weight: 700; text-align: center; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .upload-cover-btn {
+    align-self: center; margin-top: 2px; padding: 7px 14px; font-size: 12.5px; font-weight: 700;
+    color: var(--accent-ink); background: rgba(224,138,130,.14); border: 1px solid rgba(224,138,130,.4);
+    border-radius: 999px; cursor: pointer; transition: all .16s var(--ease); -webkit-tap-highlight-color: transparent;
+  }
+  .upload-cover-btn:active { transform: scale(.96); background: rgba(224,138,130,.26); }
   .shelf-empty { padding: 56px 12px; text-align: center; color: var(--muted); font-size: 14px; line-height: 1.8; }
   .stat-num { font-family: var(--font-display); font-size: 30px; font-weight: 700; color: var(--accent-ink); line-height: 1; }
   .stat-lbl { font-size: 12.5px; color: var(--muted); font-weight: 600; }
@@ -832,6 +838,7 @@
   }
   [data-theme="dark"] .shelf-cover { background: linear-gradient(145deg, rgba(224,138,130,.26) 0%, rgba(255,228,205,.14) 100%); }
   [data-theme="dark"] .shelf-back { background: rgba(255,255,255,.08); }
+  [data-theme="dark"] .upload-cover-btn { background: rgba(224,138,130,.22); border-color: rgba(224,138,130,.5); }
   [data-theme="dark"] .cat-card { background: rgba(255,255,255,0.06); }
   [data-theme="dark"] .cat-card:hover { background: rgba(255,255,255,0.10); }
   [data-theme="dark"] .cat-card.is-active { background: linear-gradient(135deg, rgba(224,138,130,0.28), rgba(229,84,75,0.16)); }
@@ -1507,7 +1514,6 @@
           '<div class="detail-cat">分类：<b>' + esc(parent ? parent.name : "—") + "</b></div>" +
           '<button class="icon-btn danger" id="delBook">🗑 删除</button>' +
         "</div>" +
-        coverHTML(b) +
         '<div class="detail-head">' +
           '<div class="head-meta" id="headMeta">' + meta + "</div>" +
         "</div>" +
@@ -1520,8 +1526,6 @@
       "</div>";
     detail.innerHTML = html;
     bindItem(b);
-    updateCoverUI(b);
-    maybeFetchCover(b);
   }
 
   function renderHome() {
@@ -1647,8 +1651,9 @@
           ? '<img src="' + esc(b.cover) + '" alt="" loading="lazy" />'
           : '<span class="shelf-ph">' + esc(defaultEmoji(b.name)) + '</span>';
         body += '<div class="shelf-card" data-open="' + b.id + '">' +
-          '<div class="shelf-cover">' + cover + '</div>' +
+          '<div class="shelf-cover" id="cover-' + b.id + '">' + cover + '</div>' +
           '<div class="shelf-name">' + esc(b.name) + '</div>' +
+          '<button class="upload-cover-btn" type="button" data-book="' + b.id + '">📁 上传封面</button>' +
         '</div>';
       });
       body += '</div>';
@@ -1661,6 +1666,7 @@
           '<button class="btn btn-primary" id="catAddBook" style="margin-left:auto">＋ 添加书籍</button>' +
         '</div>' +
         body +
+        '<input type="file" id="catCoverFile" accept="image/*" hidden />' +
       '</div></div>';
     var back = document.getElementById("catBack");
     if (back) back.addEventListener("click", goBack);
@@ -1674,6 +1680,30 @@
         save(); renderSidebar(); renderDetail();
       });
     });
+    /* 分类页：每本书「上传封面」按钮，选图后同步更新上方封面（不跳转、不刷新整页） */
+    var catFile = document.getElementById("catCoverFile");
+    var catCoverTarget = null;
+    detail.querySelectorAll(".upload-cover-btn").forEach(function (btn) {
+      btn.addEventListener("click", function (e) {
+        e.stopPropagation(); e.preventDefault();
+        catCoverTarget = btn.getAttribute("data-book");
+        if (catFile) catFile.click();
+      });
+    });
+    if (catFile) {
+      catFile.addEventListener("change", function (e) {
+        var f = e.target.files && e.target.files[0];
+        if (!f || !catCoverTarget) { catFile.value = ""; return; }
+        var bid = catCoverTarget; catCoverTarget = null;
+        processImageFile(f, function (dataUrl) {
+          var book = findNode(bid);
+          if (book) { book.cover = dataUrl; save(); }
+          var ce = document.getElementById("cover-" + bid);
+          if (ce) ce.innerHTML = '<img src="' + esc(dataUrl) + '" alt="" />';
+          catFile.value = "";
+        });
+      });
+    }
   }
 
   function field(label, control) { return '<div class="field"><label>' + label + "</label>" + control + "</div>"; }
@@ -2723,8 +2753,7 @@ if ('serviceWorker' in navigator) {
     if (e.touches.length !== 1) return;
     var t = e.touches[0];
     sx = t.clientX; sy = t.clientY;
-    var edge = Math.max(36, Math.round(window.innerWidth * 0.16)); // 左边缘约 16% 屏宽起滑，避开 iOS 系统边缘手势
-    armed = sx < edge && data.selectedId !== "home";   // 只要不在首页，左边缘右滑即返回上一级
+    armed = data.selectedId !== "home";   // 屏幕任意位置右滑即返回上一级（不再限定左边缘，避开 iOS 系统边缘手势吞掉）
     swiping = false; decided = false;
     detail.style.transition = 'none';
   }, { passive: true });
