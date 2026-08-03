@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v64-done-shelf" />
+<meta name="build" content="v67-cat-boxes" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -202,6 +202,18 @@
   .book-item.is-done .mini-bar i { background: var(--amber); box-shadow: 0 0 8px rgba(253,240,212,.45); }
   .mini-bar { width: 38px; height: 5px; flex: none; border-radius: 5px; background: var(--line); overflow: hidden; }
   .mini-bar i { display: block; height: 100%; width: 0%; background: var(--cat, var(--accent)); border-radius: 5px; transition: width .4s var(--ease); box-shadow: 0 0 8px rgba(224,138,130,.35); }
+
+  /* 左侧总类目卡片：圆角 30px，图标在上、标题在下 */
+  .cat-card-row { position: relative; overflow: hidden; touch-action: pan-y; margin-bottom: 10px; }
+  .cat-card { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 7px; padding: 16px 10px 14px; border-radius: 30px; background: var(--surface); border: 1px solid var(--line); color: var(--ink); text-align: center; transition: all .18s var(--ease); cursor: pointer; backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); }
+  .cat-card:hover { transform: translateY(-2px); border-color: var(--accent); background: rgba(255,255,255,0.65); }
+  .cat-card.is-active { background: linear-gradient(135deg, rgba(224,138,130,0.22), rgba(229,84,75,0.10)); border-color: rgba(224,138,130,0.45); color: var(--accent-ink); }
+  .cat-card-icon { width: 58px; height: 58px; object-fit: contain; flex: none; filter: drop-shadow(0 3px 5px rgba(0,0,0,.08)); }
+  .cat-card-name { width: 100%; font-size: 13.5px; font-weight: 800; color: inherit; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 2px 6px; border-radius: 7px; }
+  .cat-card-count { font-size: 10px; font-weight: 700; color: var(--muted); background: rgba(255,255,255,0.45); border: 1px solid var(--line-soft); padding: 2px 10px; border-radius: 20px; }
+  .cat-card.is-active .cat-card-count { color: var(--accent-ink); background: rgba(255,255,255,0.35); border-color: rgba(224,138,130,0.35); }
+  .swipe-row.swiped .cat-card { transform: translateX(-76px); }
+  .swipe-row.swiping .cat-card { transition: none; }
 
   .empty-list { padding: 16px 14px; text-align: center; color: var(--muted); font-size: 13px; }
 
@@ -820,6 +832,10 @@
   }
   [data-theme="dark"] .shelf-cover { background: linear-gradient(145deg, rgba(224,138,130,.26) 0%, rgba(255,228,205,.14) 100%); }
   [data-theme="dark"] .shelf-back { background: rgba(255,255,255,.08); }
+  [data-theme="dark"] .cat-card { background: rgba(255,255,255,0.06); }
+  [data-theme="dark"] .cat-card:hover { background: rgba(255,255,255,0.10); }
+  [data-theme="dark"] .cat-card.is-active { background: linear-gradient(135deg, rgba(224,138,130,0.28), rgba(229,84,75,0.16)); }
+  [data-theme="dark"] .cat-card-count { background: rgba(0,0,0,0.25); }
 
   /* 手机端：侧栏占 3/5 屏幕，品牌区图标置顶、文字横排居中 */
   @media (max-width: 860px) {
@@ -937,6 +953,22 @@
     if (!src) return "";
     return '<img class="crayon-sticker" src="' + esc(src) + '" alt="" aria-hidden="true" />';
   }
+
+  /* 总类目卡片图标：从已抠好的蜡笔小新贴纸里循环使用 */
+  var CATEGORY_ICONS = [
+    "assets/stickers/shin_head_0_0.png",
+    "assets/stickers/shin_head_1_0.png",
+    "assets/stickers/shin_head_2_0.png",
+    "assets/stickers/shin_head_3_0.png",
+    "assets/stickers/shin_head_0_1.png",
+    "assets/stickers/shin_head_1_1.png",
+    "assets/stickers/shin_head_2_1.png",
+    "assets/stickers/shin_head_3_1.png",
+    "assets/stickers/shin_life_0_0.png",
+    "assets/stickers/shin_life_1_0.png",
+    "assets/stickers/shin_life_2_0.png",
+    "assets/stickers/shin_life_3_0.png"
+  ];
 
   function pad2(n) { return String(n).padStart(2, "0"); }
   function todayKey() { var d = new Date(); return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate()); }
@@ -1078,9 +1110,12 @@
   }
 
   function migrate(p) {
+    var catIconIdx = 0;
     p.nodes.forEach(function (n) {
       if (n.type === "category") {
         if (!n.emoji) n.emoji = defaultEmoji(n.name);
+        if (!n.icon) n.icon = CATEGORY_ICONS[catIconIdx % CATEGORY_ICONS.length];
+        catIconIdx++;
         if (!n.color || typeof n.color !== "string") n.color = CATEGORY_COLORS[0];
       }
       if (n.children && n.children.length) {
@@ -1345,27 +1380,18 @@
         return;
       }
       if (n.type === "category") {
-        var items = n.children.filter(function (b) { return !q || b.name.toLowerCase().indexOf(q) > -1; });
-        if (q && items.length === 0) return;
-        var collapsed = (n.collapsed !== false) && !q;
-        html += '<div class="cat' + (collapsed ? " collapsed" : "") + '" data-cat="' + n.id + '" style="--cat:' + catColor(n) + ';--cat-soft:' + softColor(catColor(n)) + '">';
-        html += '<div class="cat-head-row swipe-row"><div class="cat-head" data-act="toggle" data-node="' + n.id + '">';
-        html += '<span class="cat-chevron">▾</span>';
-        html += '<span class="renameable nav-wrap"><input class="cat-name nav-name" data-act="rename" data-node="' + n.id + '" value="' + esc(n.name) + '" readonly /><em class="rename-hint">✏️</em></span>';
-        html += '<span class="cat-count">' + items.length + "</span>";
-        html += '<button class="cat-add" data-act="add-item" data-node="' + n.id + '" title="添加子条目">＋</button>';
+        var matchesChild = n.children && n.children.some(function (b) { return !q || b.name.toLowerCase().indexOf(q) > -1; });
+        if (q && !matchesChild && n.name.toLowerCase().indexOf(q) === -1) return;
+        var isActive = n.id === data.selectedId;
+        if (!isActive && n.children) isActive = n.children.some(function (b) { return b.id === data.selectedId; });
+        var activeClass = isActive ? " is-active" : "";
+        var iconSrc = esc(n.icon || CATEGORY_ICONS[0]);
+        html += '<div class="cat-card-row swipe-row">';
+        html += '<div class="cat-card' + activeClass + '" data-act="select" data-node="' + n.id + '" style="--cat:' + catColor(n) + ';--cat-soft:' + softColor(catColor(n)) + '">';
+        html += '<img class="cat-card-icon" src="' + iconSrc + '" alt="" aria-hidden="true" />';
+        html += '<span class="renameable nav-wrap"><input class="cat-card-name nav-name" data-act="rename" data-node="' + n.id + '" value="' + esc(n.name) + '" readonly /><em class="rename-hint">✏️</em></span>';
+        html += '<span class="cat-card-count">' + n.children.length + " 本</span>";
         html += '</div><button class="row-del" data-act="del-cat" data-node="' + n.id + '">删除</button></div>';
-        html += '<div class="cat-books">';
-        if (items.length === 0) html += '<div class="empty-list">点 ＋ 添加子条目</div>';
-        items.forEach(function (b) {
-          var ia = b.id === data.selectedId ? " is-active" : "";
-          var idn = isDone(b) ? " is-done" : "";
-          html += '<div class="book-row swipe-row"><div class="book-item' + ia + idn + '" data-act="select" data-node="' + b.id + '">';
-          html += '<span class="renameable nav-wrap"><input class="entry-name nav-name" data-act="rename" data-node="' + b.id + '" value="' + esc(b.name) + '" readonly /><em class="rename-hint">✏️</em></span>';
-          html += '<span class="mini-bar"><i style="width:' + progressOf(b) + '%"></i></span>';
-          html += '</div><button class="row-del" data-act="del-item" data-node="' + b.id + '">删除</button></div>';
-        });
-        html += "</div></div>";
       }
     });
     html += '<div class="add-book-row"><button class="btn btn-primary" data-act="add-category">＋ 添加书籍📚</button></div>';
@@ -1385,15 +1411,38 @@
     if (row) row.classList.add("is-active");
   }
 
+  // 导航历史栈：记录 selectedId 的变化，供「右滑返回 / 返回键」回到上一个界面
+  var navStack = [];
+  var lastRenderedId = null;
+  var isBackNav = false;
+  function goBack() {
+    if (navStack.length === 0) return;            // 已在根界面，无需返回
+    var prev = navStack.pop();
+    isBackNav = true;
+    data.selectedId = prev;
+    save();
+    setSidebarActive(prev);
+    renderDetail();
+    if (window.matchMedia("(max-width: 860px)").matches) closeNav();
+    try { detail.style.transition = ""; detail.style.transform = ""; } catch (e) {}
+  }
+
   function renderDetail() {
+    // 记录导航历史：进入新界面时，把「进入前的界面」压入栈
+    var newId = data.selectedId || "home";
+    if (newId !== lastRenderedId) {
+      if (!isBackNav && lastRenderedId !== null) navStack.push(lastRenderedId);
+      isBackNav = false;
+      lastRenderedId = newId;
+    }
     var node = findNode(data.selectedId);
-    var isHome = data.selectedId === "home" || (node && (node.type === "home" || node.type === "category"));
+    var isHome = data.selectedId === "home" || (node && node.type === "home");
     app.classList.toggle("home-view", isHome);
     if (data.selectedId === "trash") { renderTrash(); return; }
     if (data.selectedId === "__done_shelf__") { renderDoneShelf(); return; }
     if (!node) { renderWelcome(); return; }
     if (node.type === "home") { renderHome(); return; }
-    if (node.type === "category") { renderHome(); return; }
+    if (node.type === "category") { renderCategoryPage(node); return; }
     renderItem(node);
   }
 
@@ -1569,6 +1618,47 @@
     });
   }
 
+  function renderCategoryPage(c) {
+    var items = c.children || [];
+    var body = "";
+    if (!items.length) {
+      body = '<div class="shelf-empty">这个分类里还没有书 📚<br/>点击右上角「＋」添加第一本</div>';
+    } else {
+      body = '<div class="shelf-grid">';
+      items.forEach(function (b) {
+        var cover = b.cover
+          ? '<img src="' + esc(b.cover) + '" alt="" loading="lazy" />'
+          : '<span class="shelf-ph">' + esc(defaultEmoji(b.name)) + '</span>';
+        body += '<div class="shelf-card" data-open="' + b.id + '">' +
+          '<div class="shelf-cover">' + cover + '</div>' +
+          '<div class="shelf-name">' + esc(b.name) + '</div>' +
+        '</div>';
+      });
+      body += '</div>';
+    }
+    detail.innerHTML =
+      '<div class="detail-inner"><div class="shelf-page">' +
+        '<div class="shelf-head">' +
+          '<button class="shelf-back" id="catBack" aria-label="返回">‹</button>' +
+          '<div><h2>' + esc(c.name) + '</h2><div class="shelf-count">共 ' + items.length + ' 本</div></div>' +
+          '<button class="btn btn-primary" id="catAddBook" style="margin-left:auto">＋ 添加书籍</button>' +
+        '</div>' +
+        body +
+      '</div></div>';
+    var back = document.getElementById("catBack");
+    if (back) back.addEventListener("click", goBack);
+    var add = document.getElementById("catAddBook");
+    if (add) add.addEventListener("click", function () { startAddItem(c.id); });
+    detail.querySelectorAll("[data-open]").forEach(function (el) {
+      el.addEventListener("click", function () {
+        var id = el.getAttribute("data-open");
+        data.selectedId = id;
+        setSidebarActive(id);
+        save(); renderSidebar(); renderDetail();
+      });
+    });
+  }
+
   function field(label, control) { return '<div class="field"><label>' + label + "</label>" + control + "</div>"; }
   function stepper(val) {
     return '<div class="stepper"><button type="button" id="cntMinus" aria-label="减少">−</button>' +
@@ -1680,11 +1770,7 @@
     });
 
     var back = document.getElementById("backBtn");
-    if (back) back.addEventListener("click", function () {
-      data.selectedId = "home";
-      save(); renderSidebar(); renderDetail();
-      if (window.matchMedia("(max-width: 860px)").matches) closeNav();
-    });
+    if (back) back.addEventListener("click", goBack);
 
     var ai = document.getElementById("coverAI");
     if (ai) ai.addEventListener("click", function () {
@@ -1971,7 +2057,8 @@
 
   /* actions */
   function addCategory() {
-    var c = { id: uid(), name: "新分类", type: "category", emoji: "📚", color: CATEGORY_COLORS[data.nodes.length % CATEGORY_COLORS.length], collapsed: true, children: [] };
+    var catCount = data.nodes.filter(function (n) { return n.type === "category"; }).length;
+    var c = { id: uid(), name: "新分类", type: "category", emoji: "📚", icon: CATEGORY_ICONS[catCount % CATEGORY_ICONS.length], color: CATEGORY_COLORS[data.nodes.length % CATEGORY_COLORS.length], collapsed: true, children: [] };
     data.nodes.push(c);
     data.search = ""; searchInput.value = "";
     save(); renderSidebar();
@@ -2297,6 +2384,23 @@
     var sel = e.target.closest('[data-act="select"]');
     var nameEl = e.target.closest('[data-act="rename"]');
     var editingName = nameEl && !nameEl.readOnly;
+    /* 总类目标题三连击改名 */
+    if (nameEl && !editingName) {
+      var rn = findNode(nameEl.getAttribute("data-node"));
+      if (rn && rn.type === "category") {
+        var tid = rn.id;
+        if (!tripleClicks[tid]) tripleClicks[tid] = { c: 0 };
+        tripleClicks[tid].c++;
+        clearTimeout(tripleClicks[tid].t);
+        tripleClicks[tid].t = setTimeout(function () { tripleClicks[tid].c = 0; }, 500);
+        if (tripleClicks[tid].c >= 3) {
+          tripleClicks[tid].c = 0;
+          var inp = catList.querySelector('.nav-name[data-node="' + tid + '"]');
+          if (inp) { inp.readOnly = false; inp.focus(); inp.select(); }
+          return;
+        }
+      }
+    }
     if (sel && !editingName) {
       var id = sel.getAttribute("data-node");
       if (id !== data.selectedId) { data.selectedId = id; setSidebarActive(id); save(); renderDetail(); }
@@ -2568,6 +2672,77 @@ if ('serviceWorker' in navigator) {
     }).catch(function () {});
   });
 }
+
+/* 通知权限：仅「首次进入」请求一次，并用 localStorage 记住。
+   之后不再请求，避免浏览器反复弹出「是否允许发送通知」提示。
+   备注：若你之前在浏览器里选过「允许一次」，本次会再请你做最终决定；
+   选「允许」或「阻止」后即永久不再弹出。 */
+(function () {
+  try {
+    if (!('Notification' in window)) return;
+    var KEY = 'suki_notify_prompted';
+    if (localStorage.getItem(KEY) === '1') return;            // 已询问过，不再弹
+    if (Notification.permission !== 'default') {              // 已做过永久决定
+      localStorage.setItem(KEY, '1');
+      return;
+    }
+    var done = false;
+    function ask() {
+      if (done) return; done = true;
+      Notification.requestPermission().then(function () {
+        localStorage.setItem(KEY, '1');                       // 已询问一次，之后不再请求
+      }).catch(function () {});
+    }
+    window.addEventListener('click', ask, { once: true });      // 首次真实交互后再请求，避免一打开就弹
+    window.addEventListener('touchstart', ask, { once: true });
+  } catch (e) {}
+})();
+
+/* 主内容区：从屏幕左侧边缘向右滑动，返回上一个界面（iOS 风格边缘返回） */
+(function () {
+  if (!detail) return;
+  var sx = 0, sy = 0, armed = false, swiping = false, decided = false;
+  detail.addEventListener('touchstart', function (e) {
+    if (e.touches.length !== 1) return;
+    var t = e.touches[0];
+    sx = t.clientX; sy = t.clientY;
+    armed = sx < 28 && navStack.length > 0;   // 仅从左侧边缘起滑，且存在上一级界面时才触发
+    swiping = false; decided = false;
+    detail.style.transition = 'none';
+  }, { passive: true });
+  detail.addEventListener('touchmove', function (e) {
+    if (!armed || decided) return;
+    if (e.touches.length !== 1) return;
+    var t = e.touches[0];
+    var dx = t.clientX - sx, dy = t.clientY - sy;
+    if (!swiping) {
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      if (Math.abs(dy) > Math.abs(dx)) { armed = false; return; }  // 竖向滚动，放弃
+      if (dx < 0) { armed = false; return; }                      // 左滑不处理（留给删除等）
+      swiping = true;
+    }
+    if (dx > 0 && e.cancelable) e.preventDefault();               // 阻止页面滚动干扰
+    var off = Math.min(dx * 0.6, 160);
+    detail.style.transform = 'translateX(' + off + 'px)';
+  }, { passive: false });
+  function finish(e) {
+    if (!swiping) { reset(); return; }
+    decided = true;
+    var t = e.changedTouches ? e.changedTouches[0] : null;
+    var dx = t ? (t.clientX - sx) : 0;
+    detail.style.transition = 'transform .22s ease';
+    if (dx > 64) {
+      detail.style.transform = 'translateX(110%)';
+      setTimeout(function () { goBack(); reset(); }, 120);
+    } else {
+      detail.style.transform = 'translateX(0)';
+      setTimeout(reset, 230);
+    }
+  }
+  function reset() { detail.style.transition = 'none'; detail.style.transform = ''; }
+  detail.addEventListener('touchend', finish);
+  detail.addEventListener('touchcancel', function () { reset(); });
+})();
 </script>
 <div id="verBadge" class="ver-badge"></div>
 </body>
