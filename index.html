@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v80-forest-cabin-theme" />
+<meta name="build" content="v81-quote-forest-theme" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -467,15 +467,29 @@
   .home-hero .hero-top { display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap; }
   .hero-date { font-size: 13px; letter-spacing: 1px; text-transform: none; color: var(--accent-ink); font-weight: 800; }
   .hero-weather { margin: 0 52px 0 0; font-size: 14px; font-weight: 700; color: var(--ink); background: var(--accent-soft); border: 1.5px solid var(--accent); border-radius: 20px; padding: 3px 12px; white-space: nowrap; }
-  .hero-quote { display: flex; flex-direction: column; gap: 6px; padding: 14px 16px; background: linear-gradient(135deg, rgba(224,122,111,0.80), rgba(217,115,106,0.80)); border: 1.5px dashed rgba(255,255,255,.55); border-radius: 16px; box-shadow: var(--shadow-sm); }
-  .hq-mark { font-size: 18px; line-height: 1; color: rgba(255,255,255,.9); }
-  .hq-text { font-family: var(--font-display); font-size: 17px; color: #fff; line-height: 1.5; }
-  .hq-author { font-size: 13px; color: rgba(255,255,255,.82); font-weight: 600; align-self: flex-end; }
+  .hero-quote {
+    display: flex; flex-direction: column; gap: 8px; padding: 16px 18px;
+    background:
+      linear-gradient(135deg, rgba(93,140,97,0.84) 0%, rgba(124,160,110,0.74) 55%, rgba(163,177,138,0.62) 100%),
+      linear-gradient(118deg, rgba(242,208,107,0.18) 0%, transparent 42%);
+    border: 1.5px dashed rgba(242,208,107,0.55); border-radius: 18px;
+    box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255,255,255,.22);
+  }
+  .hq-mark { font-size: 18px; line-height: 1; filter: drop-shadow(0 1px 1px rgba(0,0,0,.08)); }
+  .hq-text { font-family: var(--font-display); font-size: 17px; color: #FFFBF0; line-height: 1.55; letter-spacing: .2px; text-shadow: 0 1px 2px rgba(0,0,0,.08); }
+  .hq-author { font-size: 13px; color: rgba(242,208,107,0.92); font-weight: 600; align-self: flex-end; text-shadow: 0 1px 2px rgba(0,0,0,.08); }
   .home-hero h1 { display: none; }
   .hero-sub { display: none; }
   .hero-sun { transform-origin: 624px 74px; animation: floatY 7s ease-in-out infinite; }
-  .daily-quote { margin: 0 0 30px; padding: 16px 22px; border-left: 4px solid rgba(255,255,255,.6); border-radius: 0 16px 16px 0; background: linear-gradient(135deg, rgba(224,122,111,0.80), rgba(217,115,106,0.80)); box-shadow: var(--shadow-xs); font-family: var(--font-display); font-size: 16px; color: #fff; animation: rise .6s var(--ease) .06s both; backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); }
-  .daily-quote cite { display: block; margin-top: 8px; font-style: normal; font-size: 13px; color: rgba(255,255,255,.82); font-family: var(--font-ui); font-weight: 600; }
+  .daily-quote { margin: 0 0 30px; padding: 16px 22px; border-left: 4px solid rgba(242,208,107,.55); border-radius: 0 18px 18px 0; background: linear-gradient(135deg, rgba(93,140,97,0.78), rgba(163,177,138,0.66)); box-shadow: var(--shadow-xs); font-family: var(--font-display); font-size: 16px; color: #FFFBF0; animation: rise .6s var(--ease) .06s both; backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); }
+  .daily-quote cite { display: block; margin-top: 8px; font-style: normal; font-size: 13px; color: rgba(242,208,107,.85); font-family: var(--font-ui); font-weight: 600; }
+  [data-theme="dark"] .hero-quote {
+    background:
+      linear-gradient(135deg, rgba(93,140,97,0.70) 0%, rgba(124,160,110,0.58) 55%, rgba(163,177,138,0.46) 100%),
+      linear-gradient(118deg, rgba(242,208,107,0.14) 0%, transparent 42%);
+    border-color: rgba(242,208,107,0.42);
+  }
+  [data-theme="dark"] .daily-quote { background: linear-gradient(135deg, rgba(93,140,97,0.62), rgba(163,177,138,0.52)); border-left-color: rgba(242,208,107,.42); }
   .quote-panel { margin: 0 0 30px; padding: 16px 20px 6px; background: linear-gradient(145deg, rgba(255,255,255,0.60) 0%, rgba(251,234,225,0.40) 100%); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-sm); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); animation: rise .55s var(--ease) both; }
   .quote-head { font-family: var(--font-display); font-weight: 800; font-size: 14px; color: var(--accent-ink); margin-bottom: 10px; letter-spacing: .5px; }
   .quote-panel .daily-quote { margin: 0 0 10px; background: none; border: none; border-radius: 0; box-shadow: none; padding: 0; backdrop-filter: none; -webkit-backdrop-filter: none; }
@@ -1147,7 +1161,7 @@
           '<div class="hero-weather" id="heroWeather">' + esc(heroWeatherText) + '</div>' +
         '</div>' +
         '<div class="hero-quote">' +
-          '<span class="hq-mark">📜</span>' +
+          '<span class="hq-mark">🌿</span>' +
           '<span class="hq-text">“' + esc(q.t) + '”</span>' +
           '<span class="hq-author">— ' + esc(q.a) + '</span>' +
         '</div>' +
