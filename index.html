@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v75-cat-addbox-swipe" />
+<meta name="build" content="v76-longpress-delete" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -254,6 +254,19 @@
   .title-actions .btn { flex: 1; }
   .btn-ghost { background: var(--surface-2); color: var(--ink-soft); border: 1px solid var(--line); }
   .btn-ghost:hover { border-color: var(--accent); color: var(--accent-ink); background: rgba(224,138,130,0.12); }
+  /* 分类页长按书籍 → 删除确认弹窗 */
+  .confirm-overlay { position: fixed; inset: 0; z-index: 90; display: flex; align-items: center; justify-content: center; background: rgba(45,58,66,.34); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); animation: cfFade .18s var(--ease); }
+  @keyframes cfFade { from { opacity: 0; } to { opacity: 1; } }
+  .confirm-card { width: min(360px, 86vw); padding: 26px 24px 22px; background: var(--surface); border: 1px solid var(--line-soft); border-radius: 22px; text-align: center; box-shadow: var(--shadow-lg); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); animation: cfPop .2s var(--ease); }
+  @keyframes cfPop { from { opacity: 0; transform: translateY(10px) scale(.96); } to { opacity: 1; transform: none; } }
+  .confirm-card .cf-icon { font-size: 38px; margin-bottom: 8px; }
+  .confirm-card h3 { font-family: var(--font-display); font-size: 19px; color: var(--ink); margin: 0 0 6px; }
+  .confirm-card .cf-desc { font-size: 14px; color: var(--muted); margin: 0 0 4px; line-height: 1.6; }
+  .confirm-card .cf-name { font-weight: 800; color: var(--ink-soft); }
+  .confirm-actions { display: flex; gap: 12px; margin-top: 22px; }
+  .confirm-actions .btn { flex: 1; }
+  .btn-danger { background: linear-gradient(150deg, #E2605A, #D9534F); color: #fff; box-shadow: var(--shadow-sm); }
+  .btn-danger:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
 
   .detail-head { margin-bottom: 28px; }
   .title-input { width: 100%; border: none; background: transparent; font-family: var(--font-display); font-weight: 700; font-size: clamp(28px, 4vw, 40px); line-height: 1.12; color: var(--ink); padding: 0; margin: 0; border-bottom: 2px solid transparent; transition: border-color .2s var(--ease); -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
@@ -1692,8 +1705,38 @@
     var addBox = detail.querySelector(".shelf-add");
     if (addBox) addBox.addEventListener("click", function (e) { e.stopPropagation(); startAddItem(c.id); });
     detail.querySelectorAll("[data-open]").forEach(function (el) {
+      var id = el.getAttribute("data-open");
+      var lpTimer = null, lpFired = false, lpX = 0, lpY = 0;
+      function clearLp() { if (lpTimer) { clearTimeout(lpTimer); lpTimer = null; } }
+      // 触摸长按（iOS/Android）：静止按住 ~0.5s 弹出删除确认
+      el.addEventListener("touchstart", function (e) {
+        if (e.touches.length !== 1) return;
+        if (e.target.closest(".upload-cover-btn")) return;   // 上传封面按钮不触发长按
+        lpFired = false;
+        lpX = e.touches[0].clientX; lpY = e.touches[0].clientY;
+        clearLp();
+        lpTimer = setTimeout(function () {
+          lpFired = true;
+          var book = findNode(id);
+          if (book) confirmDeleteBook(book);
+        }, 520);
+      }, { passive: true });
+      el.addEventListener("touchmove", function (e) {
+        if (!lpTimer) return;
+        var t = e.touches[0];
+        if (Math.abs(t.clientX - lpX) > 10 || Math.abs(t.clientY - lpY) > 10) clearLp();   // 滑动/滚动则放弃长按
+      }, { passive: true });
+      el.addEventListener("touchend", clearLp);
+      el.addEventListener("touchcancel", clearLp);
+      // 桌面端右键 = 删除确认
+      el.addEventListener("contextmenu", function (e) {
+        if (e.target.closest(".upload-cover-btn")) return;
+        e.preventDefault();
+        var book = findNode(id);
+        if (book) confirmDeleteBook(book);
+      });
       el.addEventListener("click", function () {
-        var id = el.getAttribute("data-open");
+        if (lpFired) { lpFired = false; return; }   // 长按已触发弹窗，吞掉随后的点击
         data.selectedId = id;
         setSidebarActive(id);
         save(); renderSidebar(); renderDetail();
@@ -2239,6 +2282,29 @@
     if (data.selectedId === target.id) data.selectedId = "home";
     save(); renderSidebar(); renderDetail();
     showUndoToast(target);
+  }
+  /* 分类页长按书籍 → 删除确认弹窗：确定=移入回收站，取消=返回上一步 */
+  function confirmDeleteBook(book) {
+    if (!book) return;
+    var overlay = document.createElement("div");
+    overlay.className = "confirm-overlay";
+    overlay.innerHTML =
+      '<div class="confirm-card">' +
+        '<div class="cf-icon">🗑️</div>' +
+        '<h3>删除这本书？</h3>' +
+        '<p class="cf-desc">「<span class="cf-name">' + esc(book.name || "未命名") + '</span>」将被移入回收站，可稍后恢复。</p>' +
+        '<div class="confirm-actions">' +
+          '<button class="btn btn-ghost" id="cfCancel" type="button">取消</button>' +
+          '<button class="btn btn-danger" id="cfOk" type="button">确定删除</button>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(overlay);
+    function close() { if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay); }
+    var ok = document.getElementById("cfOk");
+    var cancel = document.getElementById("cfCancel");
+    if (ok) ok.addEventListener("click", function () { close(); softDelete(book); });
+    if (cancel) cancel.addEventListener("click", function () { close(); goBack(); });
+    overlay.addEventListener("click", function (e) { if (e.target === overlay) { close(); goBack(); } });
   }
   function restoreEntry(entry) {
     if (!entry) return;
