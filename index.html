@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v74-swipe-oneshot" />
+<meta name="build" content="v75-cat-addbox-swipe" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -453,6 +453,8 @@
   .shelf-back:hover { border-color: var(--accent); color: var(--accent-ink); background: rgba(224,138,130,.14); }
   .shelf-head h2 { margin: 0; font-family: var(--font-display); font-size: 22px; font-weight: 800; color: var(--ink); }
   .shelf-count { font-size: 13px; color: var(--muted); font-weight: 600; margin-top: 2px; }
+  .shelf-titlerow { display: flex; align-items: baseline; gap: 10px; }   /* 分类页标题横排：标题 + 本数 在同一行 */
+  .shelf-titlerow .shelf-count { margin-top: 0; }
   .shelf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 26px 18px; }
   .shelf-card { display: flex; flex-direction: column; gap: 12px; cursor: pointer; transition: transform .22s var(--ease); }
   .shelf-card:hover { transform: translateY(-5px); }
@@ -467,6 +469,17 @@
   }
   .upload-cover-btn:active { transform: scale(.96); background: rgba(224,138,130,.26); }
   .shelf-empty { padding: 56px 12px; text-align: center; color: var(--muted); font-size: 14px; line-height: 1.8; }
+  /* 分类页末尾：与书籍卡片同尺寸的虚线「＋」添加框 */
+  .shelf-add { cursor: pointer; display: flex; flex-direction: column; gap: 12px; }
+  .shelf-add .shelf-add-box {
+    width: 100%; aspect-ratio: 3 / 4; border-radius: 15px;
+    border: 2px dashed var(--line-soft, #d8c8c2);
+    background: rgba(255,255,255,0.30);
+    display: grid; place-items: center;
+    color: #b6a99e; font-size: 42px; font-weight: 200; line-height: 1;
+    transition: all .16s var(--ease); -webkit-tap-highlight-color: transparent;
+  }
+  .shelf-add:active .shelf-add-box { transform: scale(.96); background: rgba(224,138,130,.10); border-color: rgba(224,138,130,.5); }
   .stat-num { font-family: var(--font-display); font-size: 30px; font-weight: 700; color: var(--accent-ink); line-height: 1; }
   .stat-lbl { font-size: 12.5px; color: var(--muted); font-weight: 600; }
   .home-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
@@ -1646,37 +1659,38 @@
 
   function renderCategoryPage(c) {
     var items = c.children || [];
-    var body = "";
+    var body = '<div class="shelf-grid">';
+    items.forEach(function (b) {
+      var cover = b.cover
+        ? '<img src="' + esc(b.cover) + '" alt="" loading="lazy" />'
+        : '<span class="shelf-ph">' + esc(defaultEmoji(b.name)) + '</span>';
+      body += '<div class="shelf-card" data-open="' + b.id + '">' +
+        '<div class="shelf-cover" id="cover-' + b.id + '">' + cover + '</div>' +
+        '<div class="shelf-name">' + esc(b.name) + '</div>' +
+        '<button class="upload-cover-btn" type="button" data-book="' + b.id + '">📁 上传封面</button>' +
+      '</div>';
+    });
+    // 末尾固定一个虚线「＋」添加框（与书籍卡片同尺寸），点击即添加新书籍
+    body += '<div class="shelf-card shelf-add" data-act="add-book" data-cat="' + c.id + '">' +
+              '<div class="shelf-add-box">＋</div>' +
+            '</div>';
+    body += '</div>';
     if (!items.length) {
-      body = '<div class="shelf-empty">这个分类里还没有书 📚<br/>点击右上角「＋」添加第一本</div>';
-    } else {
-      body = '<div class="shelf-grid">';
-      items.forEach(function (b) {
-        var cover = b.cover
-          ? '<img src="' + esc(b.cover) + '" alt="" loading="lazy" />'
-          : '<span class="shelf-ph">' + esc(defaultEmoji(b.name)) + '</span>';
-        body += '<div class="shelf-card" data-open="' + b.id + '">' +
-          '<div class="shelf-cover" id="cover-' + b.id + '">' + cover + '</div>' +
-          '<div class="shelf-name">' + esc(b.name) + '</div>' +
-          '<button class="upload-cover-btn" type="button" data-book="' + b.id + '">📁 上传封面</button>' +
-        '</div>';
-      });
-      body += '</div>';
+      body += '<div class="shelf-empty">还没有书，点虚线方框添加第一本 📚</div>';
     }
     detail.innerHTML =
       '<div class="detail-inner"><div class="shelf-page">' +
         '<div class="shelf-head">' +
           '<button class="shelf-back" id="catBack" aria-label="返回">‹</button>' +
-          '<div><h2>' + esc(c.name) + '</h2><div class="shelf-count">共 ' + items.length + ' 本</div></div>' +
-          '<button class="btn btn-primary" id="catAddBook" style="margin-left:auto">＋ 添加书籍</button>' +
+          '<div class="shelf-titlerow"><h2>' + esc(c.name) + '</h2><span class="shelf-count">共 ' + items.length + ' 本</span></div>' +
         '</div>' +
         body +
         '<input type="file" id="catCoverFile" accept="image/*" hidden />' +
       '</div></div>';
     var back = document.getElementById("catBack");
     if (back) back.addEventListener("click", goBack);
-    var add = document.getElementById("catAddBook");
-    if (add) add.addEventListener("click", function () { startAddItem(c.id); });
+    var addBox = detail.querySelector(".shelf-add");
+    if (addBox) addBox.addEventListener("click", function (e) { e.stopPropagation(); startAddItem(c.id); });
     detail.querySelectorAll("[data-open]").forEach(function (el) {
       el.addEventListener("click", function () {
         var id = el.getAttribute("data-open");
@@ -2694,14 +2708,16 @@
   var brandTitleEl = document.getElementById("brandTitle");
   if (brandTitleEl) { brandTitleEl.textContent = getAppTitle(); makeEditable(brandTitleEl, getAppTitle, setAppTitle); }
 
-  /* 主内容区：屏幕任意位置向右滑动返回上一级（Touch Events，绑定在 detail，iOS 最稳）
-     关键修复：方向判定更宽容（横滑即判定，避免首次被浏览器当滚动吞掉 → 不再需要滑两次）；
-     __swipeBack 超时自动清除（iOS 右滑不产生 click，避免误吞后续点击）。 */
+  /* 主内容区：屏幕任意位置向右滑动返回上一级（Touch Events，绑定在 detail）
+     ★ 关键：最终判定只看「起点→终点坐标差」(onEnd)，不依赖 touchmove 是否可取消。
+     原因：iOS Safari 对滚动容器内第一次手势常把 touchmove 当纵向滚动吞掉，
+     旧实现靠 touchmove 设 dir，dir 永远为 0 → 首次滑动作废、要滑两次。
+     现改为 touchend 直接按坐标差判定，touchmove 被吞也不影响返回。 */
   (function () {
     if (!detail) return;
     if (!('ontouchstart' in window)) return;   // 仅触摸设备启用，桌面用返回按钮
     var sx = 0, sy = 0, tracking = false, dir = 0;
-    var MAX = 260, DEAD = 8, TH = 35;
+    var MAX = 260, TH = 30;
     function reset() { detail.style.transition = "none"; detail.style.transform = ""; }
     function onStart(e) {
       if (data.selectedId === "home") { tracking = false; return; }   // 首页不触发
@@ -2714,30 +2730,29 @@
       if (!tracking) return;
       if (e.touches.length !== 1) return;
       var dx = e.touches[0].clientX - sx, dy = e.touches[0].clientY - sy;
-      if (dir === 0) {
-        if (Math.abs(dx) < DEAD && Math.abs(dy) < DEAD) return;        // 死区，避免误触
-        if (Math.abs(dx) > Math.abs(dy)) { dir = dx > 0 ? 1 : -1; }    // 横滑：>0 右滑，<0 左滑
-        else { tracking = false; return; }                             // 明显竖向滚动：放弃，交还浏览器
+      if (dir === 0 && (Math.abs(dx) > 6 || Math.abs(dy) > 6)) {
+        dir = (Math.abs(dx) > Math.abs(dy)) ? (dx > 0 ? 1 : -1) : 0;  // 1 右滑 / -1 左滑 / 0 竖向(交还浏览器)
       }
-      if (dir === 1) {                                                 // 右滑：跟手并阻止页面横滚
+      if (dir === 1) {   // 已判定为右滑：尽量跟手并阻止横滚（iOS 若忽略也不影响最终判定）
         if (e.cancelable) { try { e.preventDefault(); } catch (err) {} }
-        var off = Math.min(dx, MAX);
-        detail.style.transform = "translateX(" + off + "px)";
-      } else {
-        tracking = false;                                              // 左滑不处理
+        detail.style.transform = "translateX(" + Math.min(dx, MAX) + "px)";
       }
+      // dir 为 0 或 -1：不干预，交还浏览器（竖向滚动 / 左滑）
     }
     function onEnd(e) {
       if (!tracking) return;
       tracking = false;
       var t = e.changedTouches && e.changedTouches[0];
-      var dx = t ? (t.clientX - sx) : 0;
+      if (!t) { reset(); return; }
+      var dx = t.clientX - sx, dy = t.clientY - sy;
+      // 最终判定只看起点→终点：横向且右向、位移足够 → 返回（与 touchmove 是否被吞无关）
+      var right = dx > TH && dx > Math.abs(dy) * 0.85;
       detail.style.transition = "transform .22s ease";
-      if (dir === 1 && dx > TH) {   // 右滑且位移足够：返回上一级
+      if (right) {
         detail.style.transform = "translateX(110%)";
         window.__swipeBack = true;          // 抑制紧随其后的误触点击（如分类页卡片被误打开）
         setTimeout(function () { goBack(); reset(); }, 140);
-        setTimeout(function () { window.__swipeBack = false; }, 500);  // iOS 右滑不产生 click，超时自动清除，避免误吞下次点击
+        setTimeout(function () { window.__swipeBack = false; }, 500);  // iOS 右滑不产生 click，超时自动清除，避免误吞后续点击
       } else {
         detail.style.transform = "translateX(0)";
         setTimeout(reset, 230);
