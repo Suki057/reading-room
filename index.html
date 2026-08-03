@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v83-detail-cat-color" />
+<meta name="build" content="v84-reading-progress" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -341,7 +341,7 @@
   .extra-h2 { display: flex; align-items: center; gap: 8px; }
   .extra-h2 .extra-title { flex: 1; }
   .del-extra { margin-left: auto; }
-  /* 读书流程：阅读记录 / 自动进度 / 内容方框 */
+  /* 阅读进度：阅读记录 / 自动进度 / 内容方框 */
   .flow-top { margin-bottom: 2px; }
   .read-log { margin-top: 8px; }
   .log-row { display: grid; grid-template-columns: 1fr 1fr 36px; gap: 8px; align-items: center; margin-bottom: 8px; }
@@ -477,12 +477,12 @@
   }
   .hq-mark { font-size: 18px; line-height: 1; filter: drop-shadow(0 1px 1px rgba(0,0,0,.08)); }
   .hq-text { font-family: var(--font-display); font-size: 17px; color: #FFFBF0; line-height: 1.55; letter-spacing: .2px; text-shadow: 0 1px 2px rgba(0,0,0,.08); }
-  .hq-author { font-size: 13px; color: rgba(242,208,107,0.92); font-weight: 600; align-self: flex-end; text-shadow: 0 1px 2px rgba(0,0,0,.08); }
+  .hq-author { font-size: 13px; color: #fff; font-weight: 600; align-self: flex-end; text-shadow: 0 1px 2px rgba(0,0,0,.08); }
   .home-hero h1 { display: none; }
   .hero-sub { display: none; }
   .hero-sun { transform-origin: 624px 74px; animation: floatY 7s ease-in-out infinite; }
   .daily-quote { margin: 0 0 30px; padding: 16px 22px; border-left: 4px solid rgba(242,208,107,.55); border-radius: 0 18px 18px 0; background: linear-gradient(135deg, rgba(93,140,97,0.78), rgba(163,177,138,0.66)); box-shadow: var(--shadow-xs); font-family: var(--font-display); font-size: 16px; color: #FFFBF0; animation: rise .6s var(--ease) .06s both; backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); }
-  .daily-quote cite { display: block; margin-top: 8px; font-style: normal; font-size: 13px; color: rgba(242,208,107,.85); font-family: var(--font-ui); font-weight: 600; }
+  .daily-quote cite { display: block; margin-top: 8px; font-style: normal; font-size: 13px; color: #fff; font-family: var(--font-ui); font-weight: 600; }
   [data-theme="dark"] .hero-quote {
     background:
       linear-gradient(135deg, rgba(93,140,97,0.70) 0%, rgba(124,160,110,0.58) 55%, rgba(163,177,138,0.46) 100%),
@@ -1078,7 +1078,7 @@
     var h2 = (h + 45) % 360;
     return "linear-gradient(135deg, hsl(" + h + " 68% 76%), hsl(" + h2 + " 70% 86%))";
   }
-  function newItem(name) { return { id: uid(), name: name, type: "item", pages: 0, current: 0, readCount: 0, finishedDate: "", summary: "", review: "", conclusions: "", cover: "", coverList: [], coverIndex: 0, coverName: "", titles: { progress: "阅读进度与登记", summary: "内容总结", review: "复盘", conclusions: "输出&应用", flow: "读书流程" }, readLog: [], extra: [], removedSections: ["summary"] }; }
+  function newItem(name) { return { id: uid(), name: name, type: "item", pages: 0, current: 0, readCount: 0, finishedDate: "", summary: "", review: "", conclusions: "", cover: "", coverList: [], coverIndex: 0, coverName: "", titles: { progress: "阅读进度与登记", summary: "内容总结", review: "复盘", conclusions: "输出&应用", flow: "阅读进度" }, readLog: [], extra: [], removedSections: ["summary"] }; }
   function newNoteRow(left, right, color) { return { left: left || "", right: right || "", color: color || "ink" }; }
 
   var QUOTES = [
@@ -1206,7 +1206,8 @@
           if (!c.titles) c.titles = { progress: "阅读进度与登记", summary: "内容总结", review: "复盘", conclusions: "输出&应用" };
           if (!c.extra) c.extra = [];
           if (!c.readLog) c.readLog = [];
-          if (!c.titles.flow) c.titles.flow = "读书流程";
+          if (!c.titles.flow) c.titles.flow = "阅读进度";
+          if (c.titles.flow === "读书流程") c.titles.flow = "阅读进度";
           if (c.titles.conclusions === "内化出的结论" || c.titles.conclusions === "输出结论&应用") c.titles.conclusions = "输出&应用";
           if (!c.removedSections) c.removedSections = ["summary"];
           /* 把阅读记录升级为「每记录带 日期/页数 + 手写笔记内容框」的板块 */
@@ -1542,8 +1543,14 @@
   function isMobile() { return window.matchMedia("(max-width: 860px)").matches; }
   function resetDetailTransform() { try { detail.style.transition = ""; detail.style.transform = ""; } catch (e) {} }
   function goBack() {
-    // 书籍/子类目：优先返回其所属「分类页」——更符合「返回上一步」的层级直觉
     var node = findNode(data.selectedId);
+    // 分类页：点击左上角返回键保持当前页面不变，不自动跳回首页
+    if (node && node.type === "category") {
+      if (isMobile()) closeNav();
+      resetDetailTransform();
+      return;
+    }
+    // 书籍/子类目：优先返回其所属「分类页」
     if (node && node.type && node.type !== "category" && node.type !== "home") {
       var p = findParent(data.selectedId);
       if (p) {
@@ -2033,7 +2040,7 @@
     });
   }
 
-  /* 读书流程：阅读记录(日期→页数) + 自动进度条 + 内容方框 */
+  /* 阅读进度：阅读记录(日期→页数) + 自动进度条 + 内容方框 */
   function flowLatestPage(b) {
     var log = b.readLog || [], max = 0;
     log.forEach(function (r) { var p = clampInt(r.page || 0, 0); if (p > max) max = p; });
