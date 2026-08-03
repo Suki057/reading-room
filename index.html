@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v78-search-expand" />
+<meta name="build" content="v79-search-select-reset" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -2601,6 +2601,13 @@
       }
     }
     if (sel && !editingName) {
+      /* 搜索结果中点选：先清空搜索，让左侧栏恢复原始（非搜索）状态，再打开目标 */
+      if (data.search) {
+        data.search = "";
+        if (searchInput) searchInput.value = "";
+        save();
+        renderSidebar();
+      }
       var id = sel.getAttribute("data-node");
       if (id !== data.selectedId) { data.selectedId = id; setSidebarActive(id); save(); renderDetail(); }
       closeNav();
