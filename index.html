@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v69-cat-upload-swipe" />
+<meta name="build" content="v70-swipe-scope-fix" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -224,7 +224,7 @@
   .emoji-pop button:hover { background: rgba(224,138,130,0.18); transform: scale(1.15); }
 
   /* Detail */
-  .detail { min-width: 0; min-height: 0; overflow-y: auto; }
+  .detail { min-width: 0; min-height: 0; overflow-y: auto; touch-action: pan-y; }
   .detail-inner { max-width: 880px; margin: 0 auto; padding: 36px 36px 80px; }
   .detail-top { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
   .icon-btn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--surface); border-radius: 12px; padding: 8px 13px; font-size: 13px; font-weight: 700; color: var(--ink-soft); font-family: inherit; transition: all .18s var(--ease); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); }
@@ -2688,6 +2688,56 @@
   renderDetail();
   var brandTitleEl = document.getElementById("brandTitle");
   if (brandTitleEl) { brandTitleEl.textContent = getAppTitle(); makeEditable(brandTitleEl, getAppTitle, setAppTitle); }
+
+  /* 主内容区：屏幕任意位置向右滑动返回上一级（Pointer Events + touch-action:pan-y，跨设备稳定） */
+  (function () {
+    if (!detail) return;
+    var sx = 0, sy = 0, pid = null, tracking = false, swiping = false, decided = false;
+    function onDown(e) {
+      if (data.selectedId === "home") return;        // 首页不触发
+      if (e.pointerType === "mouse") return;         // 鼠标不触发，避免误触文字选择
+      tracking = true; swiping = false; decided = false; pid = e.pointerId;
+      sx = e.clientX; sy = e.clientY;
+      detail.style.transition = "none";
+    }
+    function onMove(e) {
+      if (!tracking || decided) return;
+      if (e.pointerId !== pid) return;
+      var dx = e.clientX - sx, dy = e.clientY - sy;
+      if (!swiping) {
+        if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+        if (Math.abs(dy) > Math.abs(dx)) { tracking = false; return; }   // 竖向滚动，放弃
+        if (dx < 0) { tracking = false; return; }                        // 左滑不处理
+        swiping = true;
+      }
+      if (dx > 0) { try { e.preventDefault(); } catch (err) {} }
+      var off = Math.min(dx * 0.6, 160);
+      detail.style.transform = "translateX(" + off + "px)";
+    }
+    function onUp(e) {
+      if (!swiping) { reset(); return; }
+      decided = true;
+      var dx = (e.clientX || sx) - sx;
+      detail.style.transition = "transform .22s ease";
+      if (dx > 64) {
+        detail.style.transform = "translateX(110%)";
+        window.__swipeBack = true;                 // 抑制随后的误点击（如分类页卡片被误打开）
+        setTimeout(function () { goBack(); reset(); }, 120);
+      } else {
+        detail.style.transform = "translateX(0)";
+        setTimeout(reset, 230);
+      }
+    }
+    function reset() { detail.style.transition = "none"; detail.style.transform = ""; }
+    detail.addEventListener("pointerdown", onDown);
+    detail.addEventListener("pointermove", onMove, { passive: false });
+    detail.addEventListener("pointerup", onUp);
+    detail.addEventListener("pointercancel", reset);
+    // 右滑返回后，抑制紧随其后的误触点击（避免分类页卡片被误打开）
+    document.addEventListener("click", function (e) {
+      if (window.__swipeBack) { e.preventDefault(); e.stopPropagation(); window.__swipeBack = false; }
+    }, true);
+  })();
 })();
 
 /* PWA: 注册 Service Worker，使手机可「添加到主屏幕」当作 App 使用
@@ -2745,51 +2795,6 @@ if ('serviceWorker' in navigator) {
   } catch (e) {}
 })();
 
-/* 主内容区：从屏幕左侧边缘向右滑动，返回上一个界面（iOS 风格边缘返回） */
-(function () {
-  if (!detail) return;
-  var sx = 0, sy = 0, armed = false, swiping = false, decided = false;
-  detail.addEventListener('touchstart', function (e) {
-    if (e.touches.length !== 1) return;
-    var t = e.touches[0];
-    sx = t.clientX; sy = t.clientY;
-    armed = data.selectedId !== "home";   // 屏幕任意位置右滑即返回上一级（不再限定左边缘，避开 iOS 系统边缘手势吞掉）
-    swiping = false; decided = false;
-    detail.style.transition = 'none';
-  }, { passive: true });
-  detail.addEventListener('touchmove', function (e) {
-    if (!armed || decided) return;
-    if (e.touches.length !== 1) return;
-    var t = e.touches[0];
-    var dx = t.clientX - sx, dy = t.clientY - sy;
-    if (!swiping) {
-      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
-      if (Math.abs(dy) > Math.abs(dx)) { armed = false; return; }  // 竖向滚动，放弃
-      if (dx < 0) { armed = false; return; }                      // 左滑不处理（留给删除等）
-      swiping = true;
-    }
-    if (dx > 0 && e.cancelable) e.preventDefault();               // 阻止页面滚动干扰
-    var off = Math.min(dx * 0.6, 160);
-    detail.style.transform = 'translateX(' + off + 'px)';
-  }, { passive: false });
-  function finish(e) {
-    if (!swiping) { reset(); return; }
-    decided = true;
-    var t = e.changedTouches ? e.changedTouches[0] : null;
-    var dx = t ? (t.clientX - sx) : 0;
-    detail.style.transition = 'transform .22s ease';
-    if (dx > 64) {
-      detail.style.transform = 'translateX(110%)';
-      setTimeout(function () { goBack(); reset(); }, 120);
-    } else {
-      detail.style.transform = 'translateX(0)';
-      setTimeout(reset, 230);
-    }
-  }
-  function reset() { detail.style.transition = 'none'; detail.style.transform = ''; }
-  detail.addEventListener('touchend', finish);
-  detail.addEventListener('touchcancel', function () { reset(); });
-})();
 </script>
 <div id="verBadge" class="ver-badge"></div>
 </body>
