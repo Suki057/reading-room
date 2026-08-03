@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v82-cat-header-forest" />
+<meta name="build" content="v83-detail-cat-color" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -261,8 +261,8 @@
   .icon-btn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--surface); border-radius: 12px; padding: 8px 13px; font-size: 13px; font-weight: 700; color: var(--ink-soft); font-family: inherit; transition: transform, background-color, border-color, box-shadow, opacity .18s var(--ease); }
   .icon-btn:hover { border-color: var(--accent); color: var(--accent-ink); background: rgba(93,140,97,0.14); }
   .icon-btn.danger:hover { border-color: var(--coral); color: var(--coral); }
-  .detail-cat { flex: 1; font-size: 13px; color: var(--muted); font-weight: 600; }
-  .detail-cat b { color: var(--cat, var(--accent-ink)); font-weight: 800; }
+  .detail-cat { flex: 1; font-size: 13px; color: var(--ink-soft); font-weight: 600; }
+  .detail-cat b { color: var(--accent-ink); font-weight: 800; }
 
   /* 输入标题页（添加子类目第一步） */
   .title-screen { position: relative; max-width: 480px; margin: 6vh auto 0; padding: 28px 26px 30px; background: var(--surface); border: 1px solid var(--line-soft); border-radius: 22px; text-align: center; box-shadow: var(--shadow-sm); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); }
@@ -604,7 +604,8 @@
   .cat-emoji { background: rgba(255,255,255,0.10); }
   .book-item.is-active { border-left: 3px solid var(--cat, var(--accent)); background: var(--cat-soft, var(--accent-soft)); }
   .book-item .mini-bar i { background: var(--cat, var(--accent)); }
-  .detail-cat b { color: var(--cat, var(--accent-ink)); }
+  .detail-cat { color: var(--ink-soft); }
+  .detail-cat b { color: var(--accent-ink); }
   .detail-inner .num { background: var(--cat-soft, rgba(93,140,97,0.18)); }
   .cat-color { display: none; }
   .color-pop { display: none; }
