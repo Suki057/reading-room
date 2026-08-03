@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v70-swipe-scope-fix" />
+<meta name="build" content="v71-cat-swipe-fix" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -225,6 +225,8 @@
 
   /* Detail */
   .detail { min-width: 0; min-height: 0; overflow-y: auto; touch-action: pan-y; }
+  /* 关键：touch-action 不继承，必须覆盖 detail 内所有后代，否则在卡片/网格上右滑会被浏览器当横向滚动吞掉 */
+  #detail, #detail * { touch-action: pan-y; }
   .detail-inner { max-width: 880px; margin: 0 auto; padding: 36px 36px 80px; }
   .detail-top { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
   .icon-btn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--surface); border-radius: 12px; padding: 8px 13px; font-size: 13px; font-weight: 700; color: var(--ink-soft); font-family: inherit; transition: all .18s var(--ease); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); }
@@ -2699,6 +2701,7 @@
       tracking = true; swiping = false; decided = false; pid = e.pointerId;
       sx = e.clientX; sy = e.clientY;
       detail.style.transition = "none";
+      try { detail.setPointerCapture(pid); } catch (err) {}   // 捕获指针，跨元素滑动也完整接收
     }
     function onMove(e) {
       if (!tracking || decided) return;
@@ -2728,7 +2731,7 @@
         setTimeout(reset, 230);
       }
     }
-    function reset() { detail.style.transition = "none"; detail.style.transform = ""; }
+    function reset() { detail.style.transition = "none"; detail.style.transform = ""; try { detail.releasePointerCapture(pid); } catch (err) {} }
     detail.addEventListener("pointerdown", onDown);
     detail.addEventListener("pointermove", onMove, { passive: false });
     detail.addEventListener("pointerup", onUp);
