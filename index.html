@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v87-confirm-timeline" />
+<meta name="build" content="v88-timeline-trash" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -420,6 +420,15 @@
   .timeline-title { font-family: var(--font-display); font-size: 16px; font-weight: 800; color: var(--ink); margin-bottom: 4px; }
   .timeline-body { font-size: 14.5px; color: var(--ink-soft); line-height: 1.6; white-space: pre-wrap; }
   .edit-timeline-read, .edit-timeline-conclusion { flex: none; margin-top: 2px; }
+  .timeline-actions { display: flex; flex-direction: column; gap: 6px; margin-left: 2px; }
+  .del-timeline-read, .del-timeline-conclusion {
+    flex: none; width: 28px; height: 28px; border-radius: 50%;
+    display: grid; place-items: center; font-size: 15px; color: var(--muted);
+    background: transparent; border: none; cursor: pointer; touch-action: manipulation;
+    transition: background .15s var(--ease), color .15s var(--ease), transform .12s var(--ease);
+  }
+  .del-timeline-read:hover, .del-timeline-conclusion:hover { background: var(--coral-soft); color: var(--coral); }
+  .del-timeline-read:active, .del-timeline-conclusion:active { transform: scale(0.92); }
 
   .extras { display: flex; flex-direction: column; gap: 20px; }
   .add-extra { align-self: flex-start; margin-top: 16px; }
@@ -1966,7 +1975,10 @@
             '<div class="timeline-title">' + esc(e.title || "未命名阅读") + '</div>' +
             '<div class="timeline-body">' + esc(e.body || "") + '</div>' +
           '</div>' +
-          '<button class="icon-btn small edit-timeline-read" data-log-idx="' + e.idx + '" title="编辑" type="button">✎</button>' +
+          '<div class="timeline-actions">' +
+            '<button class="icon-btn small edit-timeline-read" data-log-idx="' + e.idx + '" title="编辑" type="button">✎</button>' +
+            '<button class="del-timeline-read" data-log-idx="' + e.idx + '" title="删除" type="button">✕</button>' +
+          '</div>' +
         '</div>';
       } else {
         return '<div class="timeline-item timeline-conclusion" data-entry-id="' + esc(e.id) + '">' +
@@ -1978,7 +1990,10 @@
             '</div>' +
             '<div class="timeline-body">' + esc(e.text || "").replace(/\n/g, "<br>") + '</div>' +
           '</div>' +
-          '<button class="icon-btn small edit-timeline-conclusion" data-entry-id="' + esc(e.id) + '" title="编辑" type="button">✎</button>' +
+          '<div class="timeline-actions">' +
+            '<button class="icon-btn small edit-timeline-conclusion" data-entry-id="' + esc(e.id) + '" title="编辑" type="button">✎</button>' +
+            '<button class="del-timeline-conclusion" data-entry-id="' + esc(e.id) + '" title="删除" type="button">✕</button>' +
+          '</div>' +
         '</div>';
       }
     }).join("");
@@ -2087,6 +2102,20 @@
           b.__conclusionsExpanded = true;
           save(); renderItem(b); renderSidebar();
         }
+      });
+    });
+
+    /* 已记录时间线：删除按钮 → 回收站 */
+    detail.querySelectorAll(".del-timeline-read").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var idx = parseInt(btn.getAttribute("data-log-idx"), 10);
+        softDeleteTimelineRead(b, idx);
+      });
+    });
+    detail.querySelectorAll(".del-timeline-conclusion").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var id = btn.getAttribute("data-entry-id");
+        softDeleteTimelineConclusion(b, id);
       });
     });
 
@@ -2581,7 +2610,10 @@
   function undoDelete() {
     if (!data.trash || !data.trash.length) return;
     var entry = data.trash[data.trash.length - 1];
-    if (entry.kind === "note-row") restoreNoteRow(entry); else restoreEntry(entry);
+    if (entry.kind === "note-row") restoreNoteRow(entry);
+    else if (entry.kind === "timeline-read") restoreTimelineRead(entry);
+    else if (entry.kind === "timeline-conclusion") restoreTimelineConclusion(entry);
+    else restoreEntry(entry);
     data.trash.pop();
     save(); renderSidebar(); renderDetail();
     hideToast();
@@ -2617,6 +2649,53 @@
     log.notes.rows = log.notes.rows || [];
     log.notes.rows.splice(Math.min(entry.ctx.rowIdx, log.notes.rows.length), 0, entry.node.payload);
   }
+  function softDeleteTimelineRead(b, idx) {
+    var log = (b.readLog || [])[idx];
+    if (!log) return;
+    var payload = JSON.parse(JSON.stringify(log));
+    var entry = {
+      kind: "timeline-read",
+      node: { type: "timeline-read", name: (payload.notes && payload.notes.title) || "阅读记录", payload: payload },
+      ctx: { bookId: b.id, bookName: b.name || "未命名", logIdx: idx }
+    };
+    data.trash = data.trash || [];
+    data.trash.push(entry);
+    if (data.trash.length > 60) data.trash.shift();
+    b.readLog.splice(idx, 1);
+    save(); renderItem(b); renderSidebar();
+    showUndoToast(entry.node);
+  }
+  function restoreTimelineRead(entry) {
+    if (!entry || entry.kind !== "timeline-read") return;
+    var b = findNode(entry.ctx.bookId);
+    if (!b) return;
+    b.readLog = b.readLog || [];
+    b.readLog.splice(Math.min(entry.ctx.logIdx, b.readLog.length), 0, entry.node.payload);
+  }
+  function softDeleteTimelineConclusion(b, id) {
+    var entries = b.conclusionEntries || [];
+    var idx = entries.findIndex(function (x) { return x.id === id; });
+    if (idx < 0) return;
+    var payload = JSON.parse(JSON.stringify(entries[idx]));
+    var entry = {
+      kind: "timeline-conclusion",
+      node: { type: "timeline-conclusion", name: (payload.text || "").trim().slice(0, 22) || "输出&应用", payload: payload },
+      ctx: { bookId: b.id, bookName: b.name || "未命名" }
+    };
+    data.trash = data.trash || [];
+    data.trash.push(entry);
+    if (data.trash.length > 60) data.trash.shift();
+    entries.splice(idx, 1);
+    save(); renderItem(b); renderSidebar();
+    showUndoToast(entry.node);
+  }
+  function restoreTimelineConclusion(entry) {
+    if (!entry || entry.kind !== "timeline-conclusion") return;
+    var b = findNode(entry.ctx.bookId);
+    if (!b) return;
+    b.conclusionEntries = b.conclusionEntries || [];
+    b.conclusionEntries.push(entry.node.payload);
+  }
   function parentNameOf(e) {
     if (e.where && e.where.kind === "child") {
       var p = findNode(e.where.parentId);
@@ -2640,6 +2719,32 @@
             '<span class="lr-icon">📝</span>' +
             '<span class="lr-name">' + esc(rn.name || "笔记行") + '</span>' +
             '<span class="lr-meta">读书笔记 · 一行</span>' +
+            '<button class="icon-btn small" data-restore="' + i + '">恢复</button>' +
+            '<button class="icon-btn small" data-purge="' + i + '" title="永久删除">✕</button>' +
+          '</div>';
+          return;
+        }
+        if (e.kind === "timeline-read") {
+          var pl = (e.node && e.node.payload) || {};
+          var title = (pl.notes && pl.notes.title) || "阅读记录";
+          var date = pl.date || "";
+          html += '<div class="list-row trash-row">' +
+            '<span class="lr-icon">📖</span>' +
+            '<span class="lr-name">' + esc(title) + '</span>' +
+            '<span class="lr-meta">阅读记录 · ' + esc(date) + ' · 来自：' + esc(e.ctx.bookName || "—") + '</span>' +
+            '<button class="icon-btn small" data-restore="' + i + '">恢复</button>' +
+            '<button class="icon-btn small" data-purge="' + i + '" title="永久删除">✕</button>' +
+          '</div>';
+          return;
+        }
+        if (e.kind === "timeline-conclusion") {
+          var text = ((e.node && e.node.payload && e.node.payload.text) || "").trim();
+          var preview = text ? (text.length > 22 ? text.slice(0, 22) + "…" : text) : "输出&应用";
+          var cdate = (e.node && e.node.payload && e.node.payload.date) || "";
+          html += '<div class="list-row trash-row">' +
+            '<span class="lr-icon">✨</span>' +
+            '<span class="lr-name">' + esc(preview) + '</span>' +
+            '<span class="lr-meta">输出&应用 · ' + esc(cdate) + ' · 来自：' + esc(e.ctx.bookName || "—") + '</span>' +
             '<button class="icon-btn small" data-restore="' + i + '">恢复</button>' +
             '<button class="icon-btn small" data-purge="' + i + '" title="永久删除">✕</button>' +
           '</div>';
@@ -2675,7 +2780,10 @@
         var i = parseInt(btn.getAttribute("data-restore"), 10);
         var entry = data.trash[i];
         if (!entry) return;
-        if (entry.kind === "note-row") restoreNoteRow(entry); else restoreEntry(entry);
+        if (entry.kind === "note-row") restoreNoteRow(entry);
+        else if (entry.kind === "timeline-read") restoreTimelineRead(entry);
+        else if (entry.kind === "timeline-conclusion") restoreTimelineConclusion(entry);
+        else restoreEntry(entry);
         data.trash.splice(i, 1);
         save(); renderSidebar(); renderDetail();
       });
