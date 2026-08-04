@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v85-back-opens-nav" />
+<meta name="build" content="v86-lined-paper-conclusions" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -443,6 +443,25 @@
   textarea { width: 100%; min-height: 130px; resize: vertical; padding: 12px 14px; border: 1px solid var(--line); background: var(--surface); border-radius: var(--radius-sm); color: var(--ink); font-size: 16px; line-height: 1.7; font-family: inherit; transition: transform, background-color, border-color, box-shadow, opacity .18s var(--ease); }
   textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); background: rgba(255,255,255,0.72); }
   textarea::placeholder { color: var(--muted); }
+  /* 横线书写纸：用于输出&应用等核心方框 */
+  .lined-paper {
+    min-height: 170px;
+    padding: 4px 16px 8px;
+    border: none;
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+    background-color: rgba(255,255,255,.55);
+    background-image: repeating-linear-gradient(
+      transparent,
+      transparent 31px,
+      rgba(93,140,97,.18) 31px,
+      rgba(93,140,97,.18) 32px
+    );
+    background-attachment: local;
+    line-height: 32px;
+    font-size: 16px;
+  }
+  .lined-paper:focus { background-color: rgba(255,255,255,.72); background-image: repeating-linear-gradient(transparent, transparent 31px, rgba(93,140,97,.18) 31px, rgba(93,140,97,.18) 32px); background-attachment: local; box-shadow: inset 0 0 0 1px var(--accent-soft); }
+  .lined-paper::placeholder { color: rgba(93,140,97,.45); }
 
   .progress-bar { margin-top: 18px; height: 13px; border-radius: 20px; background: var(--surface); border: 1px solid var(--line); position: relative; overflow: hidden; }
   .progress-fill { position: absolute; inset: 0 auto 0 0; width: 0%; background: linear-gradient(90deg, #A3B18A, #5D8C61); border-radius: 20px; transition: width .6s var(--ease); box-shadow: 0 0 14px rgba(93,140,97,.40); }
@@ -1926,7 +1945,7 @@
         '<h2><span class="num">' + nums[n] + '</span>' +
         '<span class="sect-title renameable" data-sect="' + c.sect + '">' + esc(b.titles[c.sect]) + '</span>' +
         '<button class="icon-btn small del-core" data-core="' + c.key + '" title="删除此方框" type="button">🗑</button></h2>' +
-        '<textarea id="' + c.id + '" placeholder="' + c.ph + '">' + esc(c.val) + '</textarea></section>';
+        '<textarea id="' + c.id + '" class="' + (c.key === "conclusions" ? "lined-paper" : "") + '" placeholder="' + c.ph + '">' + esc(c.val) + '</textarea></section>';
       n++;
     });
     return html;
