@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v89-no-zoom-no-autorefresh" />
+<meta name="build" content="v90-readlog-layout" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -361,19 +361,20 @@
   .add-log-block { width: 100%; margin-top: 6px; justify-content: center; }
   .read-blocks { margin-top: 16px; display: flex; flex-direction: column; gap: 20px; }
   .session-block { border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 16px; background: linear-gradient(145deg, rgba(255,255,255,0.58) 0%, rgba(251,234,225,0.38) 100%); box-shadow: var(--shadow-sm); position: relative; overflow: hidden; backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); }
-  .session-block.session-edit { border: none; background: transparent; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; padding: 0; }
+  .session-block.session-edit { border: none; background: transparent; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; padding: 0; overflow: visible; }
   .session-block::before { content: ""; position: absolute; left: 14px; right: 14px; top: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,.8), transparent); opacity: .9; pointer-events: none; }
   .session-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
   .session-idx { font-size: 13.5px; font-weight: 800; color: var(--accent-ink); background: var(--accent-soft); padding: 4px 12px; border-radius: 20px; }
   .session-head .del-log { margin-left: auto; }
   .session-row { display: flex; flex-direction: column; gap: 12px; margin-bottom: 14px; }
-  .session-row-h { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+  .session-row-h { display: grid; grid-template-columns: minmax(120px, 1fr) minmax(150px, 1.5fr); gap: 12px; margin-bottom: 16px; }
   .session-field { display: flex; align-items: center; gap: 10px; }
-  .session-field-h { display: flex; align-items: center; gap: 10px; }
+  .session-field-h { display: flex; align-items: center; gap: 8px; min-width: 0; }
   .session-field:last-child { margin-bottom: 0; }
   .session-label { flex: none; font-size: 13px; font-weight: 700; color: var(--ink-soft); }
   .session-field input { flex: 1; min-width: 0; }
-  .session-field input.underline-input { flex: none; width: 92px; text-align: center; border: none; border-bottom: 1.5px solid var(--accent); border-radius: 0; background: transparent; box-shadow: none; font-weight: 700; color: var(--ink); padding: 4px 6px; }
+  .session-field input.underline-input { flex: none; width: 76px; text-align: center; border: none; border-bottom: 1.5px solid var(--accent); border-radius: 0; background: transparent; box-shadow: none; font-weight: 700; color: var(--ink); padding: 4px 6px; }
+  .session-field-h .log-date { max-width: 100%; min-width: 0; }
   .session-field input.underline-input:focus { outline: none; border-bottom-color: var(--accent-ink); box-shadow: none; background: transparent; }
   .session-field input.underline-input::-webkit-outer-spin-button, .session-field input.underline-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
   .session-suffix { flex: none; font-size: 14px; font-weight: 600; color: var(--ink-soft); }
@@ -399,6 +400,10 @@
   @media (max-width: 860px) {
     .note-row-edit { grid-template-columns: 1fr; }
     .note-row-edit .note-left-edit { border-right: none; border-bottom: 1px dashed rgba(93,140,97,0.15); }
+    .session-row-h { grid-template-columns: minmax(110px, 1fr) minmax(130px, 1.6fr); gap: 10px; }
+    .session-field-h { gap: 6px; }
+    .session-field input.underline-input { width: 64px; }
+    .session-field-h .log-date { padding: 7px 6px; }
   }
 
   /* ===== 输出&应用：折叠面板 ===== */
