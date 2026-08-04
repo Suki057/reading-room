@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v84-reading-progress" />
+<meta name="build" content="v85-back-opens-nav" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -1544,9 +1544,11 @@
   function resetDetailTransform() { try { detail.style.transition = ""; detail.style.transform = ""; } catch (e) {} }
   function goBack() {
     var node = findNode(data.selectedId);
-    // 分类页：点击左上角返回键保持当前页面不变，不自动跳回首页
+    // 分类页：点击左上角返回键保持当前页面不变，并展开左侧栏
     if (node && node.type === "category") {
-      if (isMobile()) closeNav();
+      setSidebarActive(data.selectedId);
+      renderSidebar();
+      if (isMobile()) openNav();
       resetDetailTransform();
       return;
     }
