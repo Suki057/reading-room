@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v96-home-card-brand-center" />
+<meta name="build" content="v97-cat-title-under-icon" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -218,12 +218,12 @@
 
   /* 左侧总类目卡片：圆角 30px，图标在上、标题在下 */
   .cat-card-row { position: relative; overflow: hidden; touch-action: pan-y; margin-bottom: 10px; }
-  .cat-card { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 7px; padding: 16px 10px 14px; border-radius: 30px; background: var(--surface); border: 1px solid var(--line); color: var(--ink); text-align: center; transition: transform, background-color, border-color, box-shadow, opacity .18s var(--ease); cursor: pointer; }
+  .cat-card { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 16px 10px 14px; border-radius: 30px; background: var(--surface); border: 1px solid var(--line); color: var(--ink); text-align: center; transition: transform, background-color, border-color, box-shadow, opacity .18s var(--ease); cursor: pointer; }
   .cat-card:hover { transform: translateY(-2px); border-color: var(--accent); background: rgba(255,255,255,0.65); }
   .cat-card.is-active { background: linear-gradient(135deg, rgba(93,140,97,0.22), rgba(93,140,97,0.10)); border-color: rgba(93,140,97,0.45); color: var(--accent-ink); }
   .cat-card-icon { width: 58px; height: 58px; object-fit: contain; flex: none; filter: drop-shadow(0 3px 5px rgba(0,0,0,.08)); }
   .cat-card-name { width: 100%; font-size: 13.5px; font-weight: 800; color: inherit; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 2px 6px; border-radius: 7px; }
-  .cat-card-count { font-size: 10px; font-weight: 700; color: var(--muted); background: rgba(255,255,255,0.45); border: 1px solid var(--line-soft); padding: 2px 10px; border-radius: 20px; }
+  .cat-card-count { font-size: 10px; font-weight: 700; color: var(--muted); background: rgba(255,255,255,0.45); border: 1px solid var(--line-soft); padding: 2px 10px; border-radius: 20px; margin-top: 6px; }
   .cat-card.is-active .cat-card-count { color: var(--accent-ink); background: rgba(255,255,255,0.35); border-color: rgba(93,140,97,0.35); }
   .swipe-row.swiped .cat-card { transform: translateX(-76px); }
   .swipe-row.swiping .cat-card { transition: none; }
@@ -626,10 +626,10 @@
     .nav-home-card .nav-home-icon { font-size: 20px; }
     .nav-home-card .nav-home-name { font-size: 13px; }
     .cat-card-row { margin-bottom: 12px; }
-    .cat-card { padding: 14px 10px 12px; border-radius: 22px; gap: 6px; }
+    .cat-card { padding: 14px 10px 12px; border-radius: 22px; gap: 2px; }
     .cat-card-icon { width: 52px; height: 52px; }
     .cat-card-name { font-size: 13px; }
-    .cat-card-count { font-size: 10px; padding: 2px 10px; }
+    .cat-card-count { font-size: 10px; padding: 2px 10px; margin-top: 5px; }
     .add-book-row { margin: 8px 0 6px; padding-top: 10px; border-top: 1px solid var(--line-soft); }
     .nav-trash { margin-top: 6px; padding: 10px 12px; }
     .nav-tool { margin-top: 4px; padding: 10px 12px; }
@@ -999,9 +999,10 @@
     .nav-home { margin: 4px 14px 10px; padding: 10px 12px; border-radius: 14px; font-size: 13.5px; }
     .cat-head { padding: 8px 10px; }
     .cat-list { padding: 6px 14px 16px; }
-    .cat-card { padding: 14px 10px 12px; border-radius: 22px; }
+    .cat-card { padding: 14px 10px 12px; border-radius: 22px; gap: 2px; }
     .cat-card-icon { width: 52px; height: 52px; }
     .cat-card-name { font-size: 13px; }
+    .cat-card-count { margin-top: 5px; }
     .data-actions { padding: 12px 14px 6px; }
     .nav-trash { margin-top: 6px; padding: 10px 12px; }
   }
