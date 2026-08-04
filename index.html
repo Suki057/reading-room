@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v90-readlog-layout" />
+<meta name="build" content="v91-readlog-date-row" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -367,14 +367,16 @@
   .session-idx { font-size: 13.5px; font-weight: 800; color: var(--accent-ink); background: var(--accent-soft); padding: 4px 12px; border-radius: 20px; }
   .session-head .del-log { margin-left: auto; }
   .session-row { display: flex; flex-direction: column; gap: 12px; margin-bottom: 14px; }
-  .session-row-h { display: grid; grid-template-columns: minmax(120px, 1fr) minmax(150px, 1.5fr); gap: 12px; margin-bottom: 16px; }
+  .session-row-h { display: flex; flex-wrap: nowrap; align-items: center; gap: 14px; margin-bottom: 16px; }
   .session-field { display: flex; align-items: center; gap: 10px; }
   .session-field-h { display: flex; align-items: center; gap: 8px; min-width: 0; }
   .session-field:last-child { margin-bottom: 0; }
   .session-label { flex: none; font-size: 13px; font-weight: 700; color: var(--ink-soft); }
   .session-field input { flex: 1; min-width: 0; }
-  .session-field input.underline-input { flex: none; width: 76px; text-align: center; border: none; border-bottom: 1.5px solid var(--accent); border-radius: 0; background: transparent; box-shadow: none; font-weight: 700; color: var(--ink); padding: 4px 6px; }
-  .session-field-h .log-date { max-width: 100%; min-width: 0; }
+  .session-field input.underline-input { flex: none; width: 80px; text-align: center; border: none; border-bottom: 1.5px solid var(--accent); border-radius: 0; background: transparent; box-shadow: none; font-weight: 700; color: var(--ink); padding: 4px 6px; }
+  .session-field-h:first-child { flex: 0 1 auto; min-width: 0; }
+  .session-field-h:last-child { flex: 1 1 auto; min-width: 0; justify-content: flex-end; }
+  .session-field-h .log-date { flex: 0 1 auto; width: auto; min-width: 0; max-width: 118px; padding: 6px 5px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: rgba(255,255,255,0.45); font-size: 13.5px; }
   .session-field input.underline-input:focus { outline: none; border-bottom-color: var(--accent-ink); box-shadow: none; background: transparent; }
   .session-field input.underline-input::-webkit-outer-spin-button, .session-field input.underline-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
   .session-suffix { flex: none; font-size: 14px; font-weight: 600; color: var(--ink-soft); }
@@ -400,10 +402,10 @@
   @media (max-width: 860px) {
     .note-row-edit { grid-template-columns: 1fr; }
     .note-row-edit .note-left-edit { border-right: none; border-bottom: 1px dashed rgba(93,140,97,0.15); }
-    .session-row-h { grid-template-columns: minmax(110px, 1fr) minmax(130px, 1.6fr); gap: 10px; }
+    .session-row-h { gap: 10px; }
     .session-field-h { gap: 6px; }
-    .session-field input.underline-input { width: 64px; }
-    .session-field-h .log-date { padding: 7px 6px; }
+    .session-field input.underline-input { width: 68px; }
+    .session-field-h .log-date { padding: 5px 4px; max-width: 110px; font-size: 13px; }
   }
 
   /* ===== 输出&应用：折叠面板 ===== */
