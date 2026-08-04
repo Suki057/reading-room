@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v93-sidebar-narrow" />
+<meta name="build" content="v94-sidebar-align-fixed" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -737,9 +737,13 @@
   .brand-text p { font-size: 10px; letter-spacing: 1.3px; }
 
   /* 分组标题 */
-  .nav-section { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px 8px; }
+  .nav-section { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px 8px; gap: 10px; }
+  .nav-section-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
   .nav-section-title { font-size: 13px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; color: var(--muted); }
   .nav-section-sub { font-size: 13px; font-weight: 700; color: var(--muted); background: var(--surface); border: 1px solid var(--line-soft); border-radius: 20px; padding: 3px 10px; }
+  .nav-home-btn { flex: none; display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--accent); background: rgba(93,140,97,0.12); color: var(--accent-ink); font-family: inherit; font-weight: 700; font-size: 13px; padding: 5px 12px; border-radius: 20px; cursor: pointer; touch-action: manipulation; transition: background-color, border-color, box-shadow, transform .15s var(--ease); }
+  .nav-home-btn.is-active { background: linear-gradient(135deg, rgba(93,140,97,0.30), rgba(93,140,97,0.14)); border-color: rgba(93,140,97,0.5); box-shadow: 0 0 0 2px rgba(93,140,97,0.12); }
+  .nav-home-btn:active { transform: scale(0.96); }
 
   /* 主按钮（CTA） */
   .btn-primary { width: 100%; background: linear-gradient(150deg, #6A9E6E, #5D8C61); color: #fff; box-shadow: 0 8px 22px rgba(93,140,97,.32), 0 0 24px rgba(93,140,97,.22), inset 0 1px 0 rgba(255,255,255,.45); }
@@ -1056,8 +1060,11 @@
     </div>
 
     <div class="nav-section">
-      <span class="nav-section-title">📂 我的书单</span>
-      <span class="nav-section-sub" id="bookCount">0 本</span>
+      <span class="nav-section-left">
+        <span class="nav-section-title">📂 总分类</span>
+        <span class="nav-section-sub" id="bookCount">0 本</span>
+      </span>
+      <button class="nav-home-btn" id="navHomeBtn" type="button">🏠 首页</button>
     </div>
     <nav class="cat-list" id="catList"></nav>
   </aside>
@@ -1530,14 +1537,7 @@
     if (!q) {
       /* 默认侧栏：首页 + 总类目卡片 + 工具 */
       data.nodes.forEach(function (n) {
-        if (n.type === "home") {
-          var ha = n.id === data.selectedId ? " is-active" : "";
-          html += '<div class="nav-home' + ha + '" data-act="select" data-node="' + n.id + '">';
-          html += '<span style="font-size:18px">' + esc(n.emoji || "🏠") + '</span>';
-          html += '<span class="renameable nav-wrap"><input class="nav-name" data-act="rename" data-node="' + n.id + '" value="' + esc(n.name) + '" readonly /><em class="rename-hint">✏️</em></span>';
-          html += "</div>";
-          return;
-        }
+        if (n.type === "home") return;   // 首页已移至侧栏顶部右侧按钮，避免重复
         if (n.type === "category") {
           var isActive = n.id === data.selectedId;
           if (!isActive && n.children) isActive = n.children.some(function (b) { return b.id === data.selectedId; });
@@ -1598,6 +1598,8 @@
     }
     if (!html) html = '<div class="empty-list">暂无内容</div>';
     catList.innerHTML = html;
+    var nhb = document.getElementById("navHomeBtn");
+    if (nhb) nhb.classList.toggle("is-active", data.selectedId === "home");
   }
   function setSidebarActive(id) {
     catList.querySelectorAll(".is-active").forEach(function (el) { el.classList.remove("is-active"); });
@@ -3175,6 +3177,15 @@
   document.getElementById("scrim").addEventListener("click", closeNav);
   var brandMenu = document.getElementById("brandMenu");
   if (brandMenu) brandMenu.addEventListener("click", closeNav);
+  var navHomeBtn = document.getElementById("navHomeBtn");
+  if (navHomeBtn) navHomeBtn.addEventListener("click", function () {
+    data.selectedId = "home";
+    setSidebarActive("home");
+    save();
+    renderSidebar();
+    renderDetail();
+    closeNav();
+  });
 
   var data = load();
   data.selectedId = "home"; /* 打开 App 时始终先进入首页 */
@@ -3194,6 +3205,7 @@
      现改为 touchend 直接按坐标差判定，touchmove 被吞也不影响返回。 */
   (function () {
     if (!detail) return;
+    return;   // 已禁用：固定界面，不再跟随手指拖动返回（返回请用屏幕上返回键 / 左侧栏）
     if (!('ontouchstart' in window)) return;   // 仅触摸设备启用，桌面用返回按钮
     var sx = 0, sy = 0, tracking = false, dir = 0;
     var MAX = 260, TH = 30;
