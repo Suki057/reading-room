@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v99-cover-picker" />
+<meta name="build" content="v100-douban-covers" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -1511,7 +1511,47 @@
   var addItemEmoji = "📚";
   var addItemCover = "";
 
-  /* ---- cover fetching (Google Books + Open Library real book covers) ---- */
+  /* ---- 封面抓取：豆瓣(主源, 高清) + Google Books / Open Library(兜底) ---- */
+  // 豆瓣官方接口被浏览器 CORS 拦截，需走带 CORS 的中转/镜像。
+  // 默认用第三方豆瓣图书镜像 book.feelyou.top（国内可达、返回高清大图 /l/）。
+  // 若你的网络访问不通，把 DOUBAN_SEARCH 换成自己的 CloudStudio 代理地址即可
+  // （代理脚本见对话：转发 https://book.douban.com/j/subject_suggest?q=书名 并加 CORS 头）。
+  var DOUBAN_SEARCH = "https://book.feelyou.top/search/";
+
+  function toHiRes(url) {
+    if (!url) return url;
+    return url
+      .replace("/view/subject/s/public/", "/view/subject/l/public/")   // 豆瓣小图→大图(高清)
+      .replace("/view/subject/m/public/", "/view/subject/l/public/")   // 豆瓣中图→大图
+      .replace("/spic/", "/lpic/")                                     // 老格式小图→大图
+      .replace("/mpic/", "/lpic/")
+      .replace(/zoom=1/, "zoom=3");                                     // Google Books 高清
+  }
+
+  function doubanCovers(title) {
+    var q = (title || "").trim();
+    if (!q) return Promise.resolve([]);
+    var url = DOUBAN_SEARCH + encodeURIComponent(q);
+    return fetch(url).then(function (r) {
+      if (!r.ok) throw new Error("douban " + r.status);
+      return r.json();
+    }).then(function (j) {
+      var arr = Array.isArray(j) ? j
+        : (j && j.data && Array.isArray(j.data)) ? j.data
+        : (j && j.list && Array.isArray(j.list)) ? j.list
+        : (j && j.books && Array.isArray(j.books)) ? j.books
+        : [];
+      var out = [];
+      arr.forEach(function (x) {
+        if (!x) return;
+        var u = x.cover_url || x.pic || x.cover || x.image ||
+                (x.images && (x.images.large || x.images.medium)) || "";
+        if (u) { u = toHiRes(u); if (out.indexOf(u) < 0) out.push(u); }
+      });
+      return out;
+    }).catch(function () { return []; });
+  }
+
   function fetchCovers(title) {
     var q = (title || "").trim();
     if (!q) return Promise.resolve([]);
@@ -1524,8 +1564,7 @@
           var links = it && it.volumeInfo && it.volumeInfo.imageLinks;
           var u = links && (links.thumbnail || links.smallThumbnail);
           if (!u) return;
-          u = u.replace(/^http:/, "https:").replace(/zoom=1/, "zoom=3");
-          push(u);
+          push(toHiRes(u));
         });
       }).catch(function () { return null; });
     }
@@ -1538,7 +1577,11 @@
         });
       }).catch(function () { return null; });
     }
-    return Promise.all([googleBooks(), openLibrary()]).then(function () { return out; });
+    // 主源：豆瓣（中文最全、封面高清）；无结果再回退 Google Books + Open Library
+    return doubanCovers(title).then(function (d) {
+      if (d.length) return d;
+      return Promise.all([googleBooks(), openLibrary()]).then(function () { return out; });
+    });
   }
   function updateCoverUI(b) {
     var img = document.getElementById("coverImg");
@@ -1585,7 +1628,7 @@
       '<div class="cover-picker-card">' +
         '<div class="cp-head"><b>选择封面</b><button class="cp-close" type="button" aria-label="关闭">✕</button></div>' +
         '<div class="cover-search-row">' +
-          '<input id="cpSearch" class="cp-search" type="text" placeholder="输入书名，如：爆款文案" />' +
+          '<input id="cpSearch" class="cp-search" type="text" placeholder="输入书名，如：爆款文案（豆瓣高清封面）" />' +
           '<button class="btn btn-primary cp-go" type="button">搜索</button>' +
         '</div>' +
         '<div class="cover-grid" id="cpGrid"></div>' +
