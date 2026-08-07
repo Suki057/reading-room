@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>读书工作台 · Reading Workbench</title>
-<meta name="build" content="v98-glass-app-icon" />
+<meta name="build" content="v99-cover-picker" />
 <!-- 字体用回苹果系统 SF Pro 栈（清爽、有质感） -->
 <style>
   :root {
@@ -327,6 +327,31 @@
   .cover-btn:hover { border-color: var(--accent); color: var(--accent-ink); background: rgba(93,140,97,0.14); }
   .cover-btn.loading { opacity: .6; pointer-events: none; }
   .cover-actions { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 1px; }
+
+  /* 添加书籍时的封面行 */
+  .title-cover { display: flex; align-items: center; gap: 14px; margin: 6px 0 2px; }
+  .title-cover-art { width: 54px; height: 76px; flex: none; border-radius: 8px; overflow: hidden; background: var(--surface-2); box-shadow: var(--shadow-sm); display: grid; }
+  .title-cover-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .title-cover-ph { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--muted); }
+  .title-cover .btn { flex: 1; }
+  /* 封面选择弹窗 */
+  .cover-picker { position: fixed; inset: 0; z-index: 95; display: none; align-items: center; justify-content: center; background: rgba(45,58,66,.42); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); animation: cfFade .18s var(--ease); padding: 16px; }
+  .cover-picker.open { display: flex; }
+  .cover-picker-card { width: min(460px, 94vw); max-height: 84vh; display: flex; flex-direction: column; padding: 18px; background: var(--surface); border: 1px solid var(--line-soft); border-radius: 22px; box-shadow: var(--shadow-lg); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); animation: cfPop .2s var(--ease); }
+  .cp-head { display: flex; align-items: center; justify-content: space-between; font-family: var(--font-display); font-size: 17px; color: var(--ink); }
+  .cp-close { border: none; background: transparent; font-size: 18px; color: var(--muted); cursor: pointer; padding: 4px 8px; border-radius: 10px; }
+  .cp-close:hover { background: var(--surface-2); color: var(--ink); }
+  .cover-search-row { display: flex; gap: 8px; margin: 14px 0 10px; }
+  .cp-search { flex: 1; min-width: 0; padding: 11px 13px; font-size: 15px; font-family: inherit; color: var(--ink); background: var(--surface-2); border: 1.5px solid var(--line); border-radius: 12px; outline: none; }
+  .cp-search:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+  .cover-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(86px, 1fr)); gap: 10px; overflow-y: auto; padding: 4px; }
+  .cover-pick { aspect-ratio: 3 / 4; border-radius: 10px; overflow: hidden; background: var(--surface-2); border: 2px solid transparent; cursor: pointer; transition: transform .14s var(--ease), border-color .14s var(--ease); }
+  .cover-pick:hover { transform: translateY(-2px); }
+  .cover-pick img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .cover-pick.selected { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .cover-empty { grid-column: 1 / -1; padding: 26px 12px; text-align: center; color: var(--muted); font-size: 13.5px; line-height: 1.6; }
+  .cover-picker-actions { display: flex; gap: 10px; margin-top: 14px; }
+  .cover-picker-actions .btn { flex: 1; }
 
   .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
   .card { background: linear-gradient(145deg, rgba(255,255,255,0.58) 0%, rgba(255,255,255,0.42) 50%, rgba(255,255,255,0.28) 100%); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px 26px; box-shadow: var(--shadow-sm); position: relative; overflow: hidden; transition: box-shadow .3s var(--ease), transform .3s var(--ease), border-color .3s var(--ease); animation: rise .55s var(--ease) both; transform-style: preserve-3d; backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); }
@@ -1484,20 +1509,36 @@
   var searchInput = document.getElementById("search");
   var addTitleReturn = "home";
   var addItemEmoji = "📚";
+  var addItemCover = "";
 
-  /* ---- cover fetching (Open Library real book covers) ---- */
+  /* ---- cover fetching (Google Books + Open Library real book covers) ---- */
   function fetchCovers(title) {
     var q = (title || "").trim();
     if (!q) return Promise.resolve([]);
-    var url = "https://openlibrary.org/search.json?title=" + encodeURIComponent(q) + "&limit=8&fields=cover_i,cover_edition_key";
-    return fetch(url).then(function (r) { return r.json(); }).then(function (j) {
-      var out = [];
-      (j.docs || []).forEach(function (d) {
-        if (d.cover_i) out.push("https://covers.openlibrary.org/b/id/" + d.cover_i + "-L.jpg");
-        else if (d.cover_edition_key) out.push("https://covers.openlibrary.org/b/olid/" + d.cover_edition_key + "-L.jpg");
-      });
-      return out;
-    }).catch(function () { return []; });
+    var out = [];
+    function push(u) { if (u && out.indexOf(u) < 0) out.push(u); }
+    function googleBooks() {
+      var url = "https://www.googleapis.com/books/v1/volumes?q=" + encodeURIComponent(q) + "&maxResults=10&country=CN";
+      return fetch(url).then(function (r) { return r.json(); }).then(function (j) {
+        (j.items || []).forEach(function (it) {
+          var links = it && it.volumeInfo && it.volumeInfo.imageLinks;
+          var u = links && (links.thumbnail || links.smallThumbnail);
+          if (!u) return;
+          u = u.replace(/^http:/, "https:").replace(/zoom=1/, "zoom=3");
+          push(u);
+        });
+      }).catch(function () { return null; });
+    }
+    function openLibrary() {
+      var url = "https://openlibrary.org/search.json?title=" + encodeURIComponent(q) + "&limit=10&fields=cover_i,cover_edition_key";
+      return fetch(url).then(function (r) { return r.json(); }).then(function (j) {
+        (j.docs || []).forEach(function (d) {
+          if (d.cover_i) push("https://covers.openlibrary.org/b/id/" + d.cover_i + "-L.jpg");
+          else if (d.cover_edition_key) push("https://covers.openlibrary.org/b/olid/" + d.cover_edition_key + "-L.jpg");
+        });
+      }).catch(function () { return null; });
+    }
+    return Promise.all([googleBooks(), openLibrary()]).then(function () { return out; });
   }
   function updateCoverUI(b) {
     var img = document.getElementById("coverImg");
@@ -1533,6 +1574,69 @@
       if (btn) btn.classList.remove("loading");
     });
   }
+
+  /* ---- 封面选择弹窗：搜真实书封并让用户挑选 ---- */
+  var coverPicker = null;
+  function ensureCoverPicker() {
+    if (coverPicker) return coverPicker;
+    coverPicker = document.createElement("div");
+    coverPicker.className = "cover-picker";
+    coverPicker.innerHTML =
+      '<div class="cover-picker-card">' +
+        '<div class="cp-head"><b>选择封面</b><button class="cp-close" type="button" aria-label="关闭">✕</button></div>' +
+        '<div class="cover-search-row">' +
+          '<input id="cpSearch" class="cp-search" type="text" placeholder="输入书名，如：爆款文案" />' +
+          '<button class="btn btn-primary cp-go" type="button">搜索</button>' +
+        '</div>' +
+        '<div class="cover-grid" id="cpGrid"></div>' +
+        '<div class="cover-picker-actions">' +
+          '<button class="btn btn-ghost cp-none" type="button">无封面（用图标）</button>' +
+          '<button class="btn btn-ghost cp-cancel" type="button">取消</button>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(coverPicker);
+    var searchInput = coverPicker.querySelector("#cpSearch");
+    var grid = coverPicker.querySelector("#cpGrid");
+    coverPicker.addEventListener("click", function (e) { if (e.target === coverPicker) hideCoverPicker(); });
+    coverPicker.querySelector(".cp-close").addEventListener("click", hideCoverPicker);
+    coverPicker.querySelector(".cp-cancel").addEventListener("click", hideCoverPicker);
+    coverPicker.querySelector(".cp-none").addEventListener("click", function () { hideCoverPicker(); if (coverPicker._state) coverPicker._state.onPick(""); });
+    coverPicker.querySelector(".cp-go").addEventListener("click", function () { if (coverPicker._state) doSearch(); });
+    searchInput.addEventListener("keydown", function (e) { if (e.key === "Enter" && coverPicker._state) doSearch(); });
+    function render(urls, loading) {
+      if (loading) { grid.innerHTML = '<div class="cover-empty">搜索中…</div>'; return; }
+      if (!urls.length) { grid.innerHTML = '<div class="cover-empty">没找到封面，换个书名试试，或用「上传封面」</div>'; return; }
+      grid.innerHTML = urls.map(function (u, i) {
+        return '<div class="cover-pick' + (coverPicker._state && u === coverPicker._state.currentUrl ? " selected" : "") + '" data-i="' + i + '"><img src="' + esc(u) + '" alt="封面' + (i + 1) + '" loading="lazy" /></div>';
+      }).join("");
+      Array.prototype.forEach.call(grid.querySelectorAll(".cover-pick"), function (el) {
+        el.addEventListener("click", function () {
+          var u = urls[parseInt(el.getAttribute("data-i"), 10)];
+          hideCoverPicker();
+          if (coverPicker._state) coverPicker._state.onPick(u);
+        });
+      });
+    }
+    function doSearch() {
+      var st = coverPicker._state; if (!st) return;
+      var t = searchInput.value.trim(); if (!t) return;
+      render([], true);
+      fetchCovers(t).then(function (urls) { render(urls, false); });
+    }
+    coverPicker._render = render;
+    coverPicker._doSearch = doSearch;
+    return coverPicker;
+  }
+  function showCoverPicker(initialTitle, currentUrl, onPick) {
+    var cp = ensureCoverPicker();
+    cp._state = { currentUrl: currentUrl || "", onPick: onPick };
+    var searchInput = cp.querySelector("#cpSearch");
+    searchInput.value = initialTitle || "";
+    cp.classList.add("open");
+    if (initialTitle && initialTitle.trim()) cp._doSearch();
+    setTimeout(function () { searchInput.focus(); searchInput.select(); }, 60);
+  }
+  function hideCoverPicker() { if (coverPicker) coverPicker.classList.remove("open"); }
 
   function highlightMatch(text, q) {
     if (!q || !text) return esc(text || "");
@@ -1704,7 +1808,7 @@
       '<div class="cover-side">' +
         '<h3>🖼️ 书籍封面</h3>' +
         '<div class="cover-actions">' +
-          '<button class="cover-btn" id="coverAI">🔄 AI 搜封面</button>' +
+          '<button class="cover-btn" id="coverAI">🖼️ 选封面</button>' +
           '<button class="cover-btn" id="coverUpload">📁 上传封面</button>' +
         '</div>' +
         '<input type="file" id="coverFile" accept="image/*" hidden />' +
@@ -1742,6 +1846,7 @@
       "</div>";
     detail.innerHTML = html;
     bindItem(b);
+    maybeFetchCover(b);
   }
 
   function renderHome() {
@@ -2188,19 +2293,7 @@
 
     var ai = document.getElementById("coverAI");
     if (ai) ai.addEventListener("click", function () {
-      ai.classList.add("loading");
-      if (b.coverList && b.coverList.length > 1) {
-        b.coverIndex = (b.coverIndex + 1) % b.coverList.length;
-        applyCover(b, b.coverList[b.coverIndex]);
-        ai.classList.remove("loading");
-      } else {
-        fetchCovers(b.name).then(function (urls) {
-          b.coverList = urls;
-          b.coverIndex = 0;
-          applyCover(b, urls.length ? urls[0] : "");
-          ai.classList.remove("loading");
-        });
-      }
+      showCoverPicker(b.name, b.cover, function (u) { applyCover(b, u); });
     });
 
     var upload = document.getElementById("coverUpload");
@@ -2538,6 +2631,10 @@
           '<div class="title-mark" id="titleMark" title="双击更换图标">' + esc(addItemEmoji) + "</div>" +
           "<h2>书籍名称</h2>" +
           '<input id="newTitleInput" class="newtitle-input" type="text" placeholder="例如：第一章 / 第 1 周 / 概念笔记" autocomplete="off" />' +
+          '<div class="title-cover" id="titleCoverRow">' +
+            '<div class="title-cover-art"><img id="titleCoverImg" alt="封面" hidden /><div class="title-cover-ph" id="titleCoverPh">无封面</div></div>' +
+            '<button class="btn btn-ghost" id="titleSearchCover" type="button">🔍 搜封面</button>' +
+          '</div>' +
           '<div class="add-emoji-pop" id="addEmojiPop">' +
             '<input id="addEmojiInput" class="add-emoji-input" type="text" placeholder="输入或粘贴 emoji" />' +
             '<button class="btn btn-primary" id="addEmojiDone" type="button">完成</button>' +
@@ -2551,6 +2648,18 @@
     detail.innerHTML = html;
     var inp = document.getElementById("newTitleInput");
     if (inp) inp.focus();
+    addItemCover = "";
+    var titleCoverImg = document.getElementById("titleCoverImg");
+    var titleCoverPh = document.getElementById("titleCoverPh");
+    function setAddCover(url) {
+      addItemCover = url || "";
+      if (url) { titleCoverImg.src = url; titleCoverImg.hidden = false; titleCoverPh.style.display = "none"; }
+      else { titleCoverImg.hidden = true; titleCoverPh.style.display = "flex"; }
+    }
+    var searchCoverBtn = document.getElementById("titleSearchCover");
+    if (searchCoverBtn) searchCoverBtn.addEventListener("click", function () {
+      showCoverPicker((document.getElementById("newTitleInput").value || "").trim(), addItemCover, setAddCover);
+    });
     var tm = document.getElementById("titleMark");
     var pop = document.getElementById("addEmojiPop");
     var emInp = document.getElementById("addEmojiInput");
@@ -2597,6 +2706,7 @@
     var name = (inp ? inp.value : "").trim() || "新子条目";
     var b = newItem(name);
     b.emoji = addItemEmoji;
+    if (addItemCover) { b.cover = addItemCover; b.coverList = [addItemCover]; b.coverIndex = 0; b.coverName = name; }
     c.children.push(b); c.collapsed = false; data.selectedId = b.id;
     save(); renderSidebar();
     renderItem(b); closeNav();
